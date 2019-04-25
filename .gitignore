@@ -1,0 +1,5 @@
+logs.log
+vendor
+composer.lock
+datacue-*.log
+staging

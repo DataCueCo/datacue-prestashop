@@ -1,0 +1,30 @@
+{
+    "name": "datacue/datacue_prestashop",
+    "description": "Prestashop Module for DataCue Client",
+    "license": "GPL-2.0",
+    "type": "project",
+    "authors": [
+        {
+            "name": "DataCue",
+            "email": "contact@datacue.co",
+            "homepage": "https://www.datacue.co"
+        },
+        {
+            "name": "chenruimin",
+            "email": "ruiminch@163.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "repositories": [
+        { "type": "vcs", "url": "https://github.com/DataCueCo/datacue-php" }
+    ],
+    "require": {
+        "php": ">=5.5",
+        "datacue/client": "dev-1.0.3-dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "DataCue\\PrestaShop\\": "src/"
+        }
+    }
+}
