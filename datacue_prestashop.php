@@ -12,6 +12,7 @@ use DataCue\PrestaShop\Modules\User;
 use DataCue\PrestaShop\Modules\Variant;
 use DataCue\PrestaShop\Modules\Order;
 use DataCue\PrestaShop\Modules\Cart;
+use DataCue\PrestaShop\Widgets\Banner;
 use DataCue\PrestaShop\Common\Schedule;
 use DataCue\PrestaShop\Common\Initializer;
 use DataCue\Exceptions\UnauthorizedException;
@@ -67,7 +68,8 @@ class Datacue_prestashop extends Module
             $this->registerHook('actionOrderStatusPostUpdate') &&
             $this->registerHook('actionCartSave') &&
             $this->registerHook('displayFooterAfter') &&
-            $this->registerHook('displayBackOfficeFooter');
+            $this->registerHook('displayBackOfficeFooter') &&
+            $this->registerHook('displayNavFullWidth');
     }
 
     public function uninstall()
@@ -158,6 +160,24 @@ class Datacue_prestashop extends Module
                     ),
                     array(
                         'type' => 'switch',
+                        'label' => $this->l('Show Product Carousel'),
+                        'name' => 'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL',
+                        'is_bool' => true,
+                        'values' => array(
+                            array(
+                                'id' => 'active_on',
+                                'value' => true,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'active_off',
+                                'value' => false,
+                                'label' => $this->l('Disabled')
+                            )
+                        ),
+                    ),
+                    array(
+                        'type' => 'switch',
                         'label' => $this->l('Show Banner'),
                         'name' => 'DATACUE_PRESTASHOP_SHOW_BANNER',
                         'is_bool' => true,
@@ -175,22 +195,20 @@ class Datacue_prestashop extends Module
                         ),
                     ),
                     array(
-                        'type' => 'switch',
-                        'label' => $this->l('Show Product Carousel'),
-                        'name' => 'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL',
-                        'is_bool' => true,
-                        'values' => array(
-                            array(
-                                'id' => 'active_on',
-                                'value' => true,
-                                'label' => $this->l('Enabled')
-                            ),
-                            array(
-                                'id' => 'active_off',
-                                'value' => false,
-                                'label' => $this->l('Disabled')
-                            )
-                        ),
+                        'col' => 3,
+                        'type' => 'text',
+                        'prefix' => '<i class="icon icon-image"></i>',
+                        'desc' => $this->l('Enter the banner image url'),
+                        'name' => 'DATACUE_PRESTASHOP_BANNER_IMAGE',
+                        'label' => $this->l('Banner image'),
+                    ),
+                    array(
+                        'col' => 3,
+                        'type' => 'text',
+                        'prefix' => '<i class="icon icon-link"></i>',
+                        'desc' => $this->l('Enter the banner link'),
+                        'name' => 'DATACUE_PRESTASHOP_BANNER_LINK',
+                        'label' => $this->l('Banner link'),
                     ),
                 ),
                 'submit' => array(
@@ -206,10 +224,12 @@ class Datacue_prestashop extends Module
     protected function getConfigFormValues()
     {
         return array(
-            'DATACUE_PRESTASHOP_SHOW_BANNER' => Configuration::get('DATACUE_PRESTASHOP_SHOW_BANNER', true),
-            'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL', true),
             'DATACUE_PRESTASHOP_API_KEY' => Configuration::get('DATACUE_PRESTASHOP_API_KEY', null),
             'DATACUE_PRESTASHOP_API_SECRET' => Configuration::get('DATACUE_PRESTASHOP_API_SECRET', null),
+            'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL', null),
+            'DATACUE_PRESTASHOP_SHOW_BANNER' => Configuration::get('DATACUE_PRESTASHOP_SHOW_BANNER', null),
+            'DATACUE_PRESTASHOP_BANNER_IMAGE' => Configuration::get('DATACUE_PRESTASHOP_BANNER_IMAGE', null),
+            'DATACUE_PRESTASHOP_BANNER_LINK' => Configuration::get('DATACUE_PRESTASHOP_BANNER_LINK', null),
         );
     }
 
@@ -310,5 +330,10 @@ class Datacue_prestashop extends Module
     public function hookDisplayBackOfficeFooter()
     {
         (new Schedule())->maybeScheduleCron();
+    }
+
+    public function hookDisplayNavFullWidth()
+    {
+        (new Banner())->onDisplayNavFullWidth();
     }
 }

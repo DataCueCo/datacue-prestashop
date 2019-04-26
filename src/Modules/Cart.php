@@ -34,6 +34,10 @@ class Cart
      */
     public function onCartSave()
     {
+        if (is_null(\Context::getContext()->cart)) {
+            return;
+        }
+
         $cart = static::buildCartForDataCue();
 
         Queue::addJobWithoutModelId(

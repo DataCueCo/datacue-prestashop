@@ -8,20 +8,20 @@ class Queue
     {
         return \Db::getInstance()->execute("
 			INSERT INTO `" . _DB_PREFIX_ . "datacue_queue` (`action`, `model`, `model_id`, `job`, `status`, `created_at`) 
-			VALUES ('$action', '$model', $modelId, '" . json_encode($job) . "', 0, NOW())");
+			VALUES ('$action', '$model', $modelId, '" . \Db::getInstance()->escape(json_encode($job), true) . "', 0, NOW())");
     }
 
     public static function addJobWithoutModelId($action, $model, $job)
     {
         return \Db::getInstance()->execute("
 			INSERT INTO `" . _DB_PREFIX_ . "datacue_queue` (`action`, `model`, `job`, `status`, `created_at`) 
-			VALUES ('$action', '$model', '" . json_encode($job) . "', 0, NOW())");
+			VALUES ('$action', '$model', '" . \Db::getInstance()->escape(json_encode($job), true) . "', 0, NOW())");
     }
 
     public static function updateJob($id, $job)
     {
         return \Db::getInstance()->execute("
-            UPDATE `" . _DB_PREFIX_ . "datacue_queue` SET `job` = '" . json_encode($job) . "' WHERE `id_datacue_queue` = $id
+            UPDATE `" . _DB_PREFIX_ . "datacue_queue` SET `job` = '" . \Db::getInstance()->escape(json_encode($job), true) . "' WHERE `id_datacue_queue` = $id
         ");
     }
 

@@ -24,13 +24,13 @@ class Variant
         }
         $item = [
             'name' => $product->name[1],
-            'price' => $product->getPrice(false, $combination->id),
+            'price' => empty($product->getPrice(false, $combination->id)) ? (float)($product->price + $combination->price) : $product->getPrice(false, $combination->id),
             'full_price' => (float)($product->price + $combination->price),
-            'link' => $product->getLink(),
-            'available' => $product->available_for_order === '1',
+            'link' => \Context::getContext()->link->getProductLink($product, null, null, null, null, null, $combination->id),
+            'available' => $product->active === 1,
             'description' => $product->description[1],
-            'photo_url' => Utils::baseURL() . _PS_PROD_IMG_ . \Image::getImgFolderStatic($product->getCoverWs()) . $product->getCoverWs() . '.jpg',
-            'stock' => $combination->quantity,
+            'photo_url' => empty($product->getCoverWs()) ? null : Utils::baseURL() . _PS_PROD_IMG_ . \Image::getImgFolderStatic($product->getCoverWs()) . $product->getCoverWs() . '.jpg',
+            'stock' => \StockAvailable::getQuantityAvailableByProduct($product->id, $combination->id),
             'categories' => array_map(function ($categoryId) {
                 return (new \Category($categoryId))->getName();
             }, $product->getCategories()),
@@ -58,9 +58,8 @@ class Variant
      * @throws \PrestaShopDatabaseException
      * @throws \PrestaShopException
      */
-    public function onCombinationAdd($combination)
+    public function onCombinationAdd($combination, $product = null)
     {
-        $product = new \Product($combination->id_product);
         Queue::addJob(
             'create',
             'variants',
@@ -75,12 +74,15 @@ class Variant
 
     /**
      * @param \Combination $combination
+     * @param \Product $product
      * @throws \PrestaShopDatabaseException
      * @throws \PrestaShopException
      */
-    public function onCombinationUpdate($combination)
+    public function onCombinationUpdate($combination, $product = null)
     {
-        $product = new \Product($combination->id_product);
+        if (is_null($product)) {
+            $product = new \Product($combination->id_product);
+        }
         if ($job = Queue::getAliveJob('update', 'variants', $combination->id)) {
             Queue::updateJob(
                 $job['id_datacue_queue'],

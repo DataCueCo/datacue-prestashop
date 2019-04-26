@@ -20,13 +20,13 @@ class Product
     {
         $item = [
             'name' => $product->name[1],
-            'price' => $product->getPrice(false),
+            'price' => empty($product->getPrice(false)) ? (float)$product->price : $product->getPrice(false),
             'full_price' => (float)$product->price,
             'link' => $product->getLink(),
-            'available' => $product->available_for_order === '1',
+            'available' => $product->active === 1,
             'description' => $product->description[1],
-            'photo_url' => Utils::baseURL() . _PS_PROD_IMG_ . \Image::getImgFolderStatic($product->getCoverWs()) . $product->getCoverWs() . '.jpg',
-            'stock' => $product->quantity,
+            'photo_url' => empty($product->getCoverWs()) ? null : Utils::baseURL() . _PS_PROD_IMG_ . \Image::getImgFolderStatic($product->getCoverWs()) . $product->getCoverWs() . '.jpg',
+            'stock' => \StockAvailable::getQuantityAvailableByProduct($product->id),
             'categories' => array_map(function ($categoryId) {
                 return (new \Category($categoryId))->getName();
             }, $product->getCategories()),
@@ -92,6 +92,10 @@ class Product
                 ]
             );
         }
+
+        array_map(function ($item) use ($product) {
+            (new Variant())->onCombinationUpdate(new \Combination($item['id']), $product);
+        }, $product->getWsCombinations());
     }
 
     /**
