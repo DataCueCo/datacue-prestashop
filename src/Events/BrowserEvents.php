@@ -178,13 +178,14 @@ class BrowserEvents
      */
     private function addJSToCheckoutPage()
     {
+        $userId = \Context::getContext()->customer->id;
         $this->addDatacueConfig([
             'page_type' => 'checkout',
         ]);
         Media::addJsDef([
-            'datacueUserId' => \Context::getContext()->customer->id,
+            'datacueUserId' => "$userId",
             'datacueCart' => Cart::buildCartForDataCue(),
-            'datacueCartLink' => Utils::baseURL() . '/cart?action=show',
+            'datacueCartLink' => Utils::baseURL() . '/index.php?controller=cart&action=show',
         ]);
         $this->addPublicJS();
         $this->context->controller->registerJavascript(
@@ -222,7 +223,7 @@ class BrowserEvents
 
         $userId = $this->context->customer->id;
         if (!is_null($userId)) {
-            $baseConfig['user_id'] = $userId;
+            $baseConfig['user_id'] = "$userId";
         }
 
         Media::addJsDef([

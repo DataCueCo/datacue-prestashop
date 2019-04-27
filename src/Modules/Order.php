@@ -64,7 +64,6 @@ class Order
             'orders',
             $order->id,
             [
-                'orderId' => $order->id,
                 'item' => static::buildOrderForDataCue($order, $currency, true),
             ]
         );
