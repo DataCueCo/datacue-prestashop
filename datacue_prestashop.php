@@ -74,6 +74,14 @@ class Datacue_prestashop extends Module
 
     public function uninstall()
     {
+        try {
+            (new Initializer(
+                Configuration::get('DATACUE_PRESTASHOP_API_KEY'),
+                Configuration::get('DATACUE_PRESTASHOP_API_SECRET')
+            ))->clearClient();
+        } catch (Exception $e) {
+        }
+
         include(dirname(__FILE__).'/sql/uninstall.php');
 
         return parent::uninstall();

@@ -59,12 +59,7 @@ class Initializer
      */
     public function maybeSyncData()
     {
-        $this->client = new Client(
-            $this->apiKey,
-            $this->apiSecret,
-            ['max_try_times' => static::MAX_TRY_TIMES],
-            Utils::isStaging() ? 'development' : 'production'
-        );
+        $this->initRequest();
 
         // Check api_key&api_secret
         $this->client->overview->all();
@@ -208,6 +203,35 @@ class Initializer
         foreach($orderIdsList as $ids) {
             Queue::addJobWithoutModelId('init', 'orders', ['ids' => $ids]);
         }
+    }
+
+    /**
+     * @throws \DataCue\Exceptions\ClientException
+     * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
+     * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
+     * @throws \DataCue\Exceptions\InvalidEnvironmentException
+     * @throws \DataCue\Exceptions\NetworkErrorException
+     * @throws \DataCue\Exceptions\RetryCountReachedException
+     * @throws \DataCue\Exceptions\UnauthorizedException
+     */
+    public function clearClient()
+    {
+        $this->initRequest();
+
+        $this->client->client->clear();
+    }
+
+    /**
+     * init request library
+     */
+    private function initRequest()
+    {
+        $this->client = new Client(
+            $this->apiKey,
+            $this->apiSecret,
+            ['max_try_times' => static::MAX_TRY_TIMES],
+            Utils::isStaging() ? 'development' : 'production'
+        );
     }
 
     /**
