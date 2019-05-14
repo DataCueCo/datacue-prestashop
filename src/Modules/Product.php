@@ -31,6 +31,7 @@ class Product
                 return (new \Category($categoryId))->getName();
             }, $product->getCategories()),
             'main_category' => (new \Category($product->getDefaultCategory()))->getName(),
+            'brand' => $product->getWsManufacturerName(),
         ];
         if ($withId) {
             $item['product_id'] = $product->id;
