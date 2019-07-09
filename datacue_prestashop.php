@@ -92,13 +92,54 @@ class Datacue_prestashop extends Module
      */
     public function getContent()
     {
+        $this->context->controller->addCSS(($this->_path).'views/css/back.css', 'all');
         $this->context->smarty->assign('module_dir', $this->_path);
 
+        $currentTab = 'base-settings';
+        if ((bool)Tools::isSubmit('datacueRecommendations')) {
+            $currentTab = 'recommendations';
+        }
+
+        return '
+            <div class="form-wrapper">
+                <ul class="nav nav-tabs">
+                    <li class="' . ($currentTab === 'base-settings' ? 'active' : '') . '"><a href="#base-settings" data-toggle="tab">Base Settings</a></li>
+                    <li class="' . ($currentTab === 'recommendations' ? 'active' : '') . '"><a href="#recommendations" data-toggle="tab">Recommendations</a></li>
+                    <li class=""><a href="#sync-status" data-toggle="tab">Sync Status</a></li>
+                    <li class=""><a href="#logs" data-toggle="tab">Logs</a></li>
+                </ul>
+                <div class="tab-content panel">
+                    <div id="base-settings" class="tab-pane ' . ($currentTab === 'base-settings' ? 'active' : '') . '">
+                        ' . $this->renderBaseSettingsTab()
+                        . $this->context->smarty->fetch($this->local_path.'views/templates/admin/baseSettingsFooter.tpl') . '
+                    </div>
+                    <div id="recommendations" class="tab-pane ' . ($currentTab === 'recommendations' ? 'active' : '') . '">
+                        ' . $this->renderBannersTab()
+                        . $this->context->smarty->fetch($this->local_path.'views/templates/admin/bannersFooter.tpl')
+                        . $this->renderProductsTab()
+                        . $this->context->smarty->fetch($this->local_path.'views/templates/admin/productsFooter.tpl')
+                        . $this->context->smarty->fetch($this->local_path.'views/templates/admin/recommendationsFooter.tpl') . '
+                    </div>
+                </div>
+            </div>
+        ';
+    }
+
+    protected function renderBaseSettingsTab()
+    {
         $output = '';
 
         try {
-            if (((bool)Tools::isSubmit('submitDatacuePrestashopModule')) == true) {
-                $this->postProcess();
+            if ((bool)Tools::isSubmit('datacueBaseSettings')) {
+                (new Initializer(
+                    Tools::getValue('DATACUE_PRESTASHOP_API_KEY'),
+                    Tools::getValue('DATACUE_PRESTASHOP_API_SECRET')
+                ))->maybeSyncData();
+
+                $fieldKeys = ['DATACUE_PRESTASHOP_API_KEY', 'DATACUE_PRESTASHOP_API_SECRET'];
+                foreach ($fieldKeys as $key) {
+                    Configuration::updateValue($key, Tools::getValue($key));
+                }
                 $output = $output.$this->context->smarty->fetch($this->local_path.'views/templates/admin/success.tpl');
             }
         } catch (UnauthorizedException $e) {
@@ -107,13 +148,50 @@ class Datacue_prestashop extends Module
             $output = $output.$this->context->smarty->fetch($this->local_path.'views/templates/admin/error.tpl');
         }
 
-        return $output.$this->renderForm().$this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
+        return $output.$this->renderForm('datacueBaseSettings', 'baseSettingForm');
+    }
+
+    protected function renderBannersTab()
+    {
+        $output = '';
+
+        if ((bool)Tools::isSubmit('datacueBanners')) {
+            $fieldKeys = [
+                'DATACUE_PRESTASHOP_SHOW_BANNER',
+                'DATACUE_PRESTASHOP_BANNER_IMAGE',
+                'DATACUE_PRESTASHOP_BANNER_LINK',
+            ];
+            foreach ($fieldKeys as $key) {
+                Configuration::updateValue($key, Tools::getValue($key));
+            }
+            $output = $output.$this->context->smarty->fetch($this->local_path.'views/templates/admin/success.tpl');
+        }
+
+        return $output.$this->renderForm('datacueBanners', 'bannersForm');
+    }
+
+    protected function renderProductsTab()
+    {
+        $output = '';
+
+        if ((bool)Tools::isSubmit('datacueProducts')) {
+            $fieldKeys = [
+                'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_HOME_PAGE',
+                'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_PRODUCT_PAGE',
+            ];
+            foreach ($fieldKeys as $key) {
+                Configuration::updateValue($key, Tools::getValue($key));
+            }
+            $output = $output.$this->context->smarty->fetch($this->local_path.'views/templates/admin/success.tpl');
+        }
+
+        return $output.$this->renderForm('datacueProducts', 'productsForm');
     }
 
     /**
      * Create the form that will be displayed in the configuration of your module.
      */
-    protected function renderForm()
+    protected function renderForm($action, $form)
     {
         $helper = new HelperForm();
 
@@ -124,7 +202,7 @@ class Datacue_prestashop extends Module
         $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
 
         $helper->identifier = $this->identifier;
-        $helper->submit_action = 'submitDatacuePrestashopModule';
+        $helper->submit_action = $action;
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
             .'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
@@ -135,19 +213,19 @@ class Datacue_prestashop extends Module
             'id_language' => $this->context->language->id,
         );
 
-        return $helper->generateForm(array($this->getConfigForm()));
+        return $helper->generateForm(array($this->{$form}()));
     }
 
     /**
      * Create the structure of your form.
      */
-    protected function getConfigForm()
+    protected function baseSettingForm()
     {
         return array(
             'form' => array(
                 'legend' => array(
-                'title' => $this->l('Settings'),
-                'icon' => 'icon-cogs',
+                    'title' => $this->l('Base Settings'),
+                    'icon' => 'icon-cogs',
                 ),
                 'input' => array(
                     array(
@@ -166,27 +244,29 @@ class Datacue_prestashop extends Module
                         'name' => 'DATACUE_PRESTASHOP_API_SECRET',
                         'label' => $this->l('Api Secret'),
                     ),
+                ),
+                'submit' => array(
+                    'title' => $this->l('Save'),
+                ),
+            ),
+        );
+    }
+
+    /**
+     * Create the structure of your form.
+     */
+    protected function bannersForm()
+    {
+        return array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Banners'),
+                    'icon' => 'icon-cogs',
+                ),
+                'input' => array(
                     array(
                         'type' => 'switch',
-                        'label' => $this->l('Show Product Carousel'),
-                        'name' => 'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL',
-                        'is_bool' => true,
-                        'values' => array(
-                            array(
-                                'id' => 'active_on',
-                                'value' => true,
-                                'label' => $this->l('Enabled')
-                            ),
-                            array(
-                                'id' => 'active_off',
-                                'value' => false,
-                                'label' => $this->l('Disabled')
-                            )
-                        ),
-                    ),
-                    array(
-                        'type' => 'switch',
-                        'label' => $this->l('Show Banner'),
+                        'label' => $this->l('Add to home page'),
                         'name' => 'DATACUE_PRESTASHOP_SHOW_BANNER',
                         'is_bool' => true,
                         'values' => array(
@@ -205,18 +285,72 @@ class Datacue_prestashop extends Module
                     array(
                         'col' => 3,
                         'type' => 'text',
+                        'label' => $this->l('Static banner image'),
                         'prefix' => '<i class="icon icon-image"></i>',
-                        'desc' => $this->l('Enter the banner image url'),
                         'name' => 'DATACUE_PRESTASHOP_BANNER_IMAGE',
-                        'label' => $this->l('Banner image'),
                     ),
                     array(
                         'col' => 3,
                         'type' => 'text',
+                        'label' => $this->l('Static banner URL'),
                         'prefix' => '<i class="icon icon-link"></i>',
-                        'desc' => $this->l('Enter the banner link'),
                         'name' => 'DATACUE_PRESTASHOP_BANNER_LINK',
-                        'label' => $this->l('Banner link'),
+                    ),
+                ),
+                'submit' => array(
+                    'title' => $this->l('Save'),
+                ),
+            ),
+        );
+    }
+
+    /**
+     * Create the structure of your form.
+     */
+    protected function productsForm()
+    {
+        return array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Products'),
+                    'icon' => 'icon-cogs',
+                ),
+                'input' => array(
+                    array(
+                        'type' => 'switch',
+                        'label' => $this->l('Add to home page'),
+                        'name' => 'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_HOME_PAGE',
+                        'is_bool' => true,
+                        'values' => array(
+                            array(
+                                'id' => 'active_on',
+                                'value' => true,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'active_off',
+                                'value' => false,
+                                'label' => $this->l('Disabled')
+                            )
+                        ),
+                    ),
+                    array(
+                        'type' => 'switch',
+                        'label' => $this->l('Add to product page'),
+                        'name' => 'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_PRODUCT_PAGE',
+                        'is_bool' => true,
+                        'values' => array(
+                            array(
+                                'id' => 'active_on',
+                                'value' => true,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'active_off',
+                                'value' => false,
+                                'label' => $this->l('Disabled')
+                            )
+                        ),
                     ),
                 ),
                 'submit' => array(
@@ -234,27 +368,12 @@ class Datacue_prestashop extends Module
         return array(
             'DATACUE_PRESTASHOP_API_KEY' => Configuration::get('DATACUE_PRESTASHOP_API_KEY', null),
             'DATACUE_PRESTASHOP_API_SECRET' => Configuration::get('DATACUE_PRESTASHOP_API_SECRET', null),
-            'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL', null),
+            'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_HOME_PAGE' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_HOME_PAGE', null),
+            'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_PRODUCT_PAGE' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_PRODUCT_PAGE', null),
             'DATACUE_PRESTASHOP_SHOW_BANNER' => Configuration::get('DATACUE_PRESTASHOP_SHOW_BANNER', null),
             'DATACUE_PRESTASHOP_BANNER_IMAGE' => Configuration::get('DATACUE_PRESTASHOP_BANNER_IMAGE', null),
             'DATACUE_PRESTASHOP_BANNER_LINK' => Configuration::get('DATACUE_PRESTASHOP_BANNER_LINK', null),
         );
-    }
-
-    /**
-     * Save form data.
-     */
-    protected function postProcess()
-    {
-        (new Initializer(
-            Tools::getValue('DATACUE_PRESTASHOP_API_KEY'),
-            Tools::getValue('DATACUE_PRESTASHOP_API_SECRET')
-        ))->maybeSyncData();
-
-        $formValues = $this->getConfigFormValues();
-        foreach (array_keys($formValues) as $key) {
-            Configuration::updateValue($key, Tools::getValue($key));
-        }
     }
 
     /**

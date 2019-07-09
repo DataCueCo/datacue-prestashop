@@ -25,3 +25,23 @@
 * Don't forget to prefix your containers with your own identifier
 * to avoid any conflicts with others containers.
 */
+
+.datacue-helper-section {
+  margin-bottom: 10px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #d3d8db;
+  border-radius: 5px;
+}
+
+.datacue-helper-section .a-login {
+  display: inline-block;
+  text-decoration: none;
+  background-color: #80ab4b;
+  color: #fff;
+  padding: 0 20px;
+  height: 40px;
+  border-radius: 20px;
+  line-height: 40px;
+  text-align: center;
+}
