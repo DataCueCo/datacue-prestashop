@@ -71,7 +71,8 @@ class Datacue_prestashop extends Module
             $this->registerHook('actionCartSave') &&
             $this->registerHook('displayFooterAfter') &&
             $this->registerHook('displayBackOfficeFooter') &&
-            $this->registerHook('displayNavFullWidth');
+            $this->registerHook('displayNavFullWidth') &&
+            $this->registerHook('displayFooterProduct');
     }
 
     public function uninstall()
@@ -189,7 +190,9 @@ class Datacue_prestashop extends Module
         if ((bool)Tools::isSubmit('datacueProducts')) {
             $fieldKeys = [
                 'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE',
+                'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_HOME_PAGE',
                 'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE',
+                'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_PRODUCT_PAGE',
             ];
             foreach ($fieldKeys as $key) {
                 Configuration::updateValue($key, Tools::getValue($key));
@@ -365,6 +368,20 @@ class Datacue_prestashop extends Module
                         ),
                     ),
                     array(
+                        'type' => 'select',
+                        'label' => $this->l('recommendation type in home page'),
+                        'name' => 'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_HOME_PAGE',
+                        'options' => array(
+                            'query' => array(
+                                array('id' => 'recent', 'name' => 'Recently Viewed'),
+                                array('id' => 'similar', 'name' => 'Similar to current product'),
+                                array('id' => 'related', 'name' => 'Related Products'),
+                            ),
+                            'id' => 'id',
+                            'name' => 'name',
+                        ),
+                    ),
+                    array(
                         'type' => 'switch',
                         'label' => $this->l('Add to product page'),
                         'name' => 'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE',
@@ -380,6 +397,20 @@ class Datacue_prestashop extends Module
                                 'value' => false,
                                 'label' => $this->l('Disabled')
                             )
+                        ),
+                    ),
+                    array(
+                        'type' => 'select',
+                        'label' => $this->l('recommendation type in product page'),
+                        'name' => 'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_PRODUCT_PAGE',
+                        'options' => array(
+                            'query' => array(
+                                array('id' => 'recent', 'name' => 'Recently Viewed'),
+                                array('id' => 'similar', 'name' => 'Similar to current product'),
+                                array('id' => 'related', 'name' => 'Related Products'),
+                            ),
+                            'id' => 'id',
+                            'name' => 'name',
                         ),
                     ),
                 ),
@@ -399,7 +430,9 @@ class Datacue_prestashop extends Module
             'DATACUE_PRESTASHOP_API_KEY' => Configuration::get('DATACUE_PRESTASHOP_API_KEY', null),
             'DATACUE_PRESTASHOP_API_SECRET' => Configuration::get('DATACUE_PRESTASHOP_API_SECRET', null),
             'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE', null),
+            'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_HOME_PAGE' => Configuration::get('DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_HOME_PAGE', null),
             'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE', null),
+            'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_PRODUCT_PAGE' => Configuration::get('DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_PRODUCT_PAGE', null),
             'DATACUE_PRESTASHOP_SHOW_BANNER' => Configuration::get('DATACUE_PRESTASHOP_SHOW_BANNER', null),
             'DATACUE_PRESTASHOP_BANNER_IMAGE' => Configuration::get('DATACUE_PRESTASHOP_BANNER_IMAGE', null),
             'DATACUE_PRESTASHOP_BANNER_LINK' => Configuration::get('DATACUE_PRESTASHOP_BANNER_LINK', null),
@@ -492,6 +525,11 @@ class Datacue_prestashop extends Module
     public function hookDisplayNavFullWidth()
     {
         (new Banner())->onDisplayNavFullWidth();
-        // (new Products())->onDisplayNavFullWidth();
+        (new Products())->onDisplayNavFullWidth();
+    }
+
+    public function hookDisplayFooterProduct()
+    {
+        (new Products())->onDisplayFooterProduct();
     }
 }
