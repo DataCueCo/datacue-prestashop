@@ -11,6 +11,7 @@ use DataCue\PrestaShop\Utils;
 use Exception;
 use DataCue\PrestaShop\Queue;
 use DataCue\Client;
+use DataCue\PrestaShop\Utils\Log;
 
 /**
  * Class Schedule
@@ -82,6 +83,7 @@ class Schedule
      */
     private function executeCron()
     {
+        Log::info('executeCron');
         $job = Queue::getNextAliveJob();
         if (!$job) {
             return;
@@ -126,6 +128,7 @@ class Schedule
             }
             Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_SUCCESS);
         } catch (Exception $e) {
+            Log::info($e->getMessage());
             Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_FAILURE);
         }
     }
@@ -144,29 +147,33 @@ class Schedule
     private function doInit($model, $job)
     {
         if ($model === 'products') {
-            $this->client->products->batchCreate(
+            $res = $this->client->products->batchCreate(
                 array_map(function ($id) {
                     return Product::buildProductForDataCue(Product::getProductById($id), true);
                 }, $job->ids)
             );
+            Log::info('batch create products response: ' . $res);
         } elseif ($model === 'variants') {
-            $this->client->products->batchCreate(
+            $res = $this->client->products->batchCreate(
                 array_map(function ($id) {
                     return Variant::buildVariantForDataCue(Variant::getVariantById($id), null, true);
                 }, $job->ids)
             );
+            Log::info('batch create variants response: ' . $res);
         } elseif ($model === 'users') {
-            $this->client->users->batchCreate(
+            $res = $this->client->users->batchCreate(
                 array_map(function ($id) {
                     return User::buildUserForDataCue(User::getUserById($id), true);
                 }, $job->ids)
             );
+            Log::info('batch create users response: ' . $res);
         } elseif ($model === 'orders') {
-            $this->client->orders->batchCreate(
+            $res = $this->client->orders->batchCreate(
                 array_map(function ($id) {
                     return Order::buildOrderForDataCue(Order::getOrderById($id), null, true);
                 }, $job->ids)
             );
+            Log::info('batch create orders response: ' . $res);
         }
     }
 
@@ -186,19 +193,19 @@ class Schedule
         switch ($action) {
             case 'create':
                 $res = $this->client->products->create($job->item);
-                $this->log('create variant response: ' . $res);
+                Log::info('create variant response: ' . $res);
                 break;
             case 'update':
                 $res = $this->client->products->update($job->productId, $job->variantId, $job->item);
-                $this->log('update product response: ' . $res);
+                Log::info('update product response: ' . $res);
                 break;
             case 'delete':
                 if ($job->variantId) {
                     $res = $this->client->products->delete($job->productId, $job->variantId);
-                    $this->log('delete variant response: ' . $res);
+                    Log::info('delete variant response: ' . $res);
                 } else {
                     $res = $this->client->products->delete($job->productId);
-                    $this->log('delete product response: ' . $res);
+                    Log::info('delete product response: ' . $res);
                 }
                 break;
             default:
@@ -238,15 +245,15 @@ class Schedule
         switch ($action) {
             case 'create':
                 $res = $this->client->users->create($job->item);
-                $this->log('create user response: ' . $res);
+                Log::info('create user response: ' . $res);
                 break;
             case 'update':
                 $res = $this->client->users->update($job->userId, $job->item);
-                $this->log('update user response: ' . $res);
+                Log::info('update user response: ' . $res);
                 break;
             case 'delete':
                 $res = $this->client->users->delete($job->userId);
-                $this->log('delete user response: ' . $res);
+                Log::info('delete user response: ' . $res);
                 break;
             default:
                 break;
@@ -269,15 +276,15 @@ class Schedule
         switch ($action) {
             case 'create':
                 $res = $this->client->orders->create($job->item);
-                $this->log('create order response: ', $res);
+                Log::info('create order response: ', $res);
                 break;
             case 'cancel':
                 $res = $this->client->orders->cancel($job->orderId);
-                $this->log('cancel order response: ', $res);
+                Log::info('cancel order response: ', $res);
                 break;
             case 'delete':
                 $res = $this->client->orders->delete($job->orderId);
-                $this->log('delete order response: ', $res);
+                Log::info('delete order response: ', $res);
                 break;
             default:
                 break;
@@ -300,18 +307,10 @@ class Schedule
         switch ($action) {
             case 'track':
                 $res = $this->client->events->track($job->user, $job->event);
-                $this->log('track event response: ', $res);
+                Log::info('track event response: ', $res);
                 break;
             default:
                 break;
         }
-    }
-
-    /**
-     * @param $info
-     */
-    private function log($info)
-    {
-
     }
 }

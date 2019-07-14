@@ -8,7 +8,7 @@ class Banner
     public function onDisplayNavFullWidth()
     {
         $show = \Configuration::get('DATACUE_PRESTASHOP_SHOW_BANNER', null);
-        if (intval($show) === 1) {
+        if (intval($show) === 1 && \Tools::getAllValues()['controller'] === 'index') {
             $image = \Configuration::get('DATACUE_PRESTASHOP_BANNER_IMAGE', null);
             $link = \Configuration::get('DATACUE_PRESTASHOP_BANNER_LINK', null);
             echo <<<EOT

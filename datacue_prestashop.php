@@ -16,6 +16,8 @@ use DataCue\PrestaShop\Widgets\Banner;
 use DataCue\PrestaShop\Common\Schedule;
 use DataCue\PrestaShop\Common\Initializer;
 use DataCue\Exceptions\UnauthorizedException;
+use DataCue\PrestaShop\Utils;
+use DataCue\PrestaShop\Widgets\Products;
 
 class Datacue_prestashop extends Module
 {
@@ -92,11 +94,17 @@ class Datacue_prestashop extends Module
      */
     public function getContent()
     {
-        $this->context->controller->addCSS(($this->_path).'views/css/back.css', 'all');
+        \Media::addJsDef([
+            'syncStatusUrl' => $this->context->link->getLegacyAdminLink('AdminDataCueSync'),
+            'logUrlPrefix' => Utils::baseURL() . '/modules/datacue_prestashop/',
+        ]);
+
+        $this->context->controller->addCSS($this->_path . 'views/css/back.css', 'all');
+        $this->context->controller->addJS($this->_path . 'views/js/back.js', 'all');
         $this->context->smarty->assign('module_dir', $this->_path);
 
         $currentTab = 'base-settings';
-        if ((bool)Tools::isSubmit('datacueRecommendations')) {
+        if ((bool)Tools::isSubmit('datacueBanners') || (bool)Tools::isSubmit('datacueProducts')) {
             $currentTab = 'recommendations';
         }
 
@@ -105,8 +113,8 @@ class Datacue_prestashop extends Module
                 <ul class="nav nav-tabs">
                     <li class="' . ($currentTab === 'base-settings' ? 'active' : '') . '"><a href="#base-settings" data-toggle="tab">Base Settings</a></li>
                     <li class="' . ($currentTab === 'recommendations' ? 'active' : '') . '"><a href="#recommendations" data-toggle="tab">Recommendations</a></li>
-                    <li class=""><a href="#sync-status" data-toggle="tab">Sync Status</a></li>
-                    <li class=""><a href="#logs" data-toggle="tab">Logs</a></li>
+                    <li class="' . ($currentTab === 'sync-status' ? 'active' : '') . '"><a href="#sync-status" data-toggle="tab">Sync Status</a></li>
+                    <li class="' . ($currentTab === 'logs' ? 'active' : '') . '"><a href="#logs" data-toggle="tab">Logs</a></li>
                 </ul>
                 <div class="tab-content panel">
                     <div id="base-settings" class="tab-pane ' . ($currentTab === 'base-settings' ? 'active' : '') . '">
@@ -120,6 +128,10 @@ class Datacue_prestashop extends Module
                         . $this->context->smarty->fetch($this->local_path.'views/templates/admin/productsFooter.tpl')
                         . $this->context->smarty->fetch($this->local_path.'views/templates/admin/recommendationsFooter.tpl') . '
                     </div>
+                    <div id="sync-status" class="tab-pane ' . ($currentTab === 'sync-status' ? 'active' : '') . '">'
+                        . $this->context->smarty->fetch($this->local_path.'views/templates/admin/syncStatus.tpl') . '</div>
+                    <div id="logs" class="tab-pane ' . ($currentTab === 'logs' ? 'active' : '') . '">'
+                        . $this->renderLogsTab() . '</div>
                 </div>
             </div>
         ';
@@ -176,8 +188,8 @@ class Datacue_prestashop extends Module
 
         if ((bool)Tools::isSubmit('datacueProducts')) {
             $fieldKeys = [
-                'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_HOME_PAGE',
-                'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_PRODUCT_PAGE',
+                'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE',
+                'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE',
             ];
             foreach ($fieldKeys as $key) {
                 Configuration::updateValue($key, Tools::getValue($key));
@@ -186,6 +198,24 @@ class Datacue_prestashop extends Module
         }
 
         return $output.$this->renderForm('datacueProducts', 'productsForm');
+    }
+
+    protected function renderLogsTab()
+    {
+        // Dates
+        $dates = '<select id="datacue-logs-date-select" style="width: 150px;">';
+        $timestamp = time();
+        for ($i = 0; $i < 3; $i++) {
+            $date = date('Y-m-d', $timestamp);
+            if (file_exists(__DIR__ . "/datacue-$date.log")) {
+                $dates .= "<option value=\"$date\"" . ($i === 0 ? ' selected' : '') . ">$date</option>";
+            }
+            $timestamp -= 24 * 3600;
+        }
+        $dates .= '</select>';
+
+        $this->context->smarty->assign(['log_dates' => $dates]);
+        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/logs.tpl');
     }
 
     /**
@@ -319,7 +349,7 @@ class Datacue_prestashop extends Module
                     array(
                         'type' => 'switch',
                         'label' => $this->l('Add to home page'),
-                        'name' => 'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_HOME_PAGE',
+                        'name' => 'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE',
                         'is_bool' => true,
                         'values' => array(
                             array(
@@ -337,7 +367,7 @@ class Datacue_prestashop extends Module
                     array(
                         'type' => 'switch',
                         'label' => $this->l('Add to product page'),
-                        'name' => 'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_PRODUCT_PAGE',
+                        'name' => 'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE',
                         'is_bool' => true,
                         'values' => array(
                             array(
@@ -368,8 +398,8 @@ class Datacue_prestashop extends Module
         return array(
             'DATACUE_PRESTASHOP_API_KEY' => Configuration::get('DATACUE_PRESTASHOP_API_KEY', null),
             'DATACUE_PRESTASHOP_API_SECRET' => Configuration::get('DATACUE_PRESTASHOP_API_SECRET', null),
-            'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_HOME_PAGE' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_HOME_PAGE', null),
-            'DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_PRODUCT_PAGE' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCT_CAROUSEL_IN_PRODUCT_PAGE', null),
+            'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE', null),
+            'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE', null),
             'DATACUE_PRESTASHOP_SHOW_BANNER' => Configuration::get('DATACUE_PRESTASHOP_SHOW_BANNER', null),
             'DATACUE_PRESTASHOP_BANNER_IMAGE' => Configuration::get('DATACUE_PRESTASHOP_BANNER_IMAGE', null),
             'DATACUE_PRESTASHOP_BANNER_LINK' => Configuration::get('DATACUE_PRESTASHOP_BANNER_LINK', null),
@@ -462,5 +492,6 @@ class Datacue_prestashop extends Module
     public function hookDisplayNavFullWidth()
     {
         (new Banner())->onDisplayNavFullWidth();
+        // (new Products())->onDisplayNavFullWidth();
     }
 }

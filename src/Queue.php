@@ -4,6 +4,26 @@ namespace DataCue\PrestaShop;
 
 class Queue
 {
+    /**
+     * Task status after initial
+     */
+    const STATUS_NONE = 0;
+
+    /**
+     * Task status for pending
+     */
+    const STATUS_PENDING = 1;
+
+    /**
+     * Task status for success
+     */
+    const STATUS_SUCCESS = 2;
+
+    /**
+     * Task status for failure
+     */
+    const STATUS_FAILURE = 3;
+
     public static function addJob($action, $model, $modelId, $job)
     {
         $action = \Db::getInstance()->escape($action);
@@ -79,6 +99,21 @@ class Queue
             $job['job'] = json_decode($job['job']);
         }
         return $job;
+    }
+
+    public static function getAllByAction($action)
+    {
+        $action = \Db::getInstance()->escape($action);
+
+        $res = \Db::getInstance()->query("
+            SELECT * FROM `" . _DB_PREFIX_ . "datacue_queue` WHERE `action` = '$action'");
+        $items = iterator_to_array($res);
+
+        foreach ($items as &$item) {
+            $item['job'] = json_decode($item['job']);
+        }
+        
+        return $items;
     }
 
     public static function updateJobStatus($id, $status)

@@ -4,6 +4,7 @@ namespace DataCue\PrestaShop\Modules;
 
 use DataCue\PrestaShop\Queue;
 use DataCue\PrestaShop\Utils;
+use DataCue\PrestaShop\Utils\Log;
 
 /**
  * Class Variant
@@ -61,6 +62,7 @@ class Variant
      */
     public function onCombinationAdd($combination, $product = null)
     {
+        Log::info('onCombinationAdd');
         Queue::addJob(
             'create',
             'variants',
@@ -81,6 +83,7 @@ class Variant
      */
     public function onCombinationUpdate($combination, $product = null)
     {
+        Log::info('onCombinationUpdate');
         if (is_null($product)) {
             $product = new \Product($combination->id_product);
         }
@@ -112,6 +115,7 @@ class Variant
      */
     public function onCombinationDelete($combination)
     {
+        Log::info('onCombinationDelete');
         Queue::addJob(
             'delete',
             'variants',

@@ -3,6 +3,7 @@
 namespace DataCue\PrestaShop\Modules;
 
 use DataCue\PrestaShop\Queue;
+use DataCue\PrestaShop\Utils\Log;
 
 /**
  * Class Order
@@ -59,6 +60,7 @@ class Order
      */
     public function onOrderAdd($order, $currency)
     {
+        Log::info('onOrderAdd');
         Queue::addJob(
             'create',
             'orders',
@@ -74,6 +76,7 @@ class Order
      */
     public function onOrderDelete($order)
     {
+        Log::info('onOrderDelete');
         Queue::addJob(
             'delete',
             'orders',
@@ -91,6 +94,7 @@ class Order
     public function onOrderStatusUpdate($orderId, $newStatus)
     {
         if (!is_null($newStatus) && $newStatus->id === 6 && !Queue::isJobExisting('cancel', 'order', $orderId)) {
+            Log::info('onOrderStatusUpdate');
             Queue::addJob(
                 'cancel',
                 'orders',

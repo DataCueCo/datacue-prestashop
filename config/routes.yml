@@ -1,0 +1,7 @@
+datacue_prestashop_sync_status:
+  path: datacue_prestashop/sync_status
+  methods: [GET]
+  defaults:
+    _controller: 'DataCue\PrestaShop\Controllers\Admin\SyncController::statusAction'
+    _legacy_controller: AdminDataCueSync
+    _legacy_link: AdminDataCueSync

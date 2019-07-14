@@ -3,6 +3,7 @@
 namespace DataCue\PrestaShop\Modules;
 
 use DataCue\PrestaShop\Queue;
+use DataCue\PrestaShop\Utils\Log;
 
 /**
  * Class User
@@ -40,6 +41,7 @@ class User
      */
     public function onUserAdd($customer)
     {
+        Log::info('onUserAdd');
         Queue::addJob(
             'create',
             'users',
@@ -55,6 +57,7 @@ class User
      */
     public function onUserUpdate($customer)
     {
+        Log::info('onUserUpdate');
         if ($job = Queue::getAliveJob('update', 'users', $customer->id)) {
             Queue::updateJob(
                 $job['id_datacue_queue'],
@@ -81,6 +84,7 @@ class User
      */
     public function onUserDelete($customer)
     {
+        Log::info('onUserDelete');
         Queue::addJob(
             'delete',
             'users',

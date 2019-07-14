@@ -4,6 +4,7 @@ namespace DataCue\PrestaShop\Modules;
 
 use DataCue\PrestaShop\Queue;
 use DataCue\PrestaShop\Utils;
+use DataCue\PrestaShop\Utils\Log;
 
 /**
  * Class Cart
@@ -37,6 +38,8 @@ class Cart
         if (is_null(\Context::getContext()->cart)) {
             return;
         }
+
+        Log::info('onCartSave');
 
         $cart = static::buildCartForDataCue();
 
