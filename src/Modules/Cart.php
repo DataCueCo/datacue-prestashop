@@ -35,28 +35,34 @@ class Cart
      */
     public function onCartSave()
     {
-        if (is_null(\Context::getContext()->cart)) {
+        if (empty(\Context::getContext()->customer) || empty(\Context::getContext()->customer->id) || \Context::getContext()->customer->isGuest() || is_null(\Context::getContext()->cart)) {
             return;
         }
 
         Log::info('onCartSave');
 
         $cart = static::buildCartForDataCue();
-
-        Queue::addJobWithoutModelId(
-            'track',
-            'events',
-            [
-                'user' => [
-                    'user_id' => \Context::getContext()->customer->id,
-                ],
-                'event' => [
-                    'type' => 'cart',
-                    'subtype' => 'update',
-                    'cart' => $cart,
-                    'cart_link' => Utils::baseURL() . '/cart?action=show',
-                ]
+        $data = [
+            'user' => [
+                'user_id' => \Context::getContext()->customer->id,
+            ],
+            'event' => [
+                'type' => 'cart',
+                'subtype' => 'update',
+                'cart' => $cart,
+                'cart_link' => Utils::baseURL() . '/cart?action=show',
             ]
-        );
+        ];
+
+        if ($job = Queue::getAliveJob('track', 'events', \Context::getContext()->customer->id)) {
+            Queue::updateJob($job['id_datacue_queue'], $data);
+        } else {
+            Queue::addJob(
+                'track',
+                'events',
+                \Context::getContext()->customer->id,
+                $data
+            );
+        }
     }
 }

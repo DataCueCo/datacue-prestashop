@@ -41,6 +41,9 @@ class User
      */
     public function onUserAdd($customer)
     {
+        if ($customer->isGuest()) {
+            return;
+        }
         Log::info('onUserAdd');
         Queue::addJob(
             'create',

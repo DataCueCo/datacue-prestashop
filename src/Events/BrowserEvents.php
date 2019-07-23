@@ -9,6 +9,7 @@ use Media;
 use Configuration;
 use DataCue\PrestaShop\Utils;
 use DataCue\PrestaShop\Modules\Category;
+use DataCue\PrestaShop\Modules\Order;
 
 /**
  * Class BrowserEvents
@@ -55,6 +56,8 @@ class BrowserEvents
             $this->addJSToCheckoutPage();
         } elseif ($this->is404Page()) {
             $this->addJSTo404Page();
+        } elseif ($this->isOrderConfirmationPage()) {
+            $this->addJSToOrderConfirmationPage();
         }
     }
 
@@ -87,7 +90,7 @@ class BrowserEvents
      */
     private function isCartPage()
     {
-        return $this->values['controller'] === 'cart' && $this->values['action'] === 'show';
+        return $this->values['controller'] === 'cart';
     }
 
     /**
@@ -112,6 +115,14 @@ class BrowserEvents
     private function is404Page()
     {
         return $this->values['controller'] === 'pagenotfound';
+    }
+
+    /**
+     * @return bool
+     */
+    private function isOrderConfirmationPage()
+    {
+        return $this->values['controller'] === 'orderconfirmation';
     }
 
     /**
@@ -209,6 +220,25 @@ class BrowserEvents
     /**
      *
      */
+    private function addJSToOrderConfirmationPage()
+    {
+        $orderId = $this->values['id_order'];
+        $order = Order::getOrderById($orderId);
+        if ($order->getCustomer()->isGuest()) {
+            $userId = $order->getCustomer()->email;
+        } else {
+            $userId = '' . $order->getCustomer()->id;
+        }
+        $this->addDatacueConfig([
+            'page_type' => 'order confirmation',
+            'user_id' => $userId,
+        ]);
+        $this->addPublicJS();
+    }
+
+    /**
+     *
+     */
     private function addDatacueConfig($config)
     {
         $baseConfig = [
@@ -224,6 +254,8 @@ class BrowserEvents
         $userId = $this->context->customer->id;
         if (!is_null($userId)) {
             $baseConfig['user_id'] = "$userId";
+        } else {
+            $baseConfig['user_id'] = null;
         }
 
         Media::addJsDef([

@@ -23,7 +23,7 @@ class Order
         }
 
         $item = [
-            'user_id' => $order->id_customer,
+            'user_id' => $order->getCustomer()->isGuest() ? $order->getCustomer()->email : $order->id_customer,
             'timestamp' => str_replace('+00:00', 'Z', gmdate('c', strtotime($order->date_add))),
         ];
 
@@ -46,6 +46,23 @@ class Order
     }
 
     /**
+     * @param \Order $order
+     * @return array
+     */
+    public static function buildGuestUserForDataCue($order)
+    {
+        return [
+            'user_id' => $order->getCustomer()->email,
+            'email' => $order->getCustomer()->email,
+            'title' => $order->getCustomer()->id_gender === 1 ? 'Mr' : 'Mrs',
+            'first_name' => $order->getCustomer()->firstname,
+            'last_name' => $order->getCustomer()->lastname,
+            'email_subscriber' => false,
+            'guest_account' => true,
+        ];
+    }
+
+    /**
      * @param $id
      * @return \Order
      */
@@ -61,6 +78,17 @@ class Order
     public function onOrderAdd($order, $currency)
     {
         Log::info('onOrderAdd');
+
+        if ($order->getCustomer()->isGuest()) {
+            Queue::addJob(
+                'create',
+                'guest_users',
+                $order->id,
+                [
+                    'item' => static::buildGuestUserForDataCue($order),
+                ]
+            );
+        }
         Queue::addJob(
             'create',
             'orders',
