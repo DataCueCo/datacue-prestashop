@@ -21,7 +21,7 @@ class Variant
     public static function buildVariantForDataCue($combination, $product = null, $withId = false)
     {
         if (is_null($product)) {
-            $product = Product::getProductById($combination->id_product);
+            $product = new \Product($combination->id_product);
         }
         $item = [
             'name' => $product->name[1],
@@ -63,6 +63,25 @@ class Variant
     public function onCombinationAdd($combination, $product = null)
     {
         Log::info('onCombinationAdd');
+        if (is_null($product)) {
+            $product = new \Product($combination->id_product);
+        }
+
+        $combinations = $product->getWsCombinations();
+        Log::info('combinations count = ' . count($combinations));
+        if (count($combinations) === 1) {
+            Log::info('onProductDelete');
+            Queue::addJob(
+                'delete',
+                'products',
+                $product->id,
+                [
+                    'productId' => $product->id,
+                    'variantId' => 'no-variants',
+                ]
+            );
+        }
+
         Queue::addJob(
             'create',
             'variants',
@@ -87,27 +106,16 @@ class Variant
         if (is_null($product)) {
             $product = new \Product($combination->id_product);
         }
-        if ($job = Queue::getAliveJob('update', 'variants', $combination->id)) {
-            Queue::updateJob(
-                $job['id_datacue_queue'],
-                [
-                    'productId' => $product->id,
-                    'variantId' => $combination->id,
-                    'item' => static::buildVariantForDataCue($combination, $product, false),
-                ]
-            );
-        } else {
-            Queue::addJob(
-                'update',
-                'variants',
-                $combination->id,
-                [
-                    'productId' => $product->id,
-                    'variantId' => $combination->id,
-                    'item' => static::buildVariantForDataCue($combination, $product, false),
-                ]
-            );
-        }
+        Queue::addJob(
+            'update',
+            'variants',
+            $combination->id,
+            [
+                'productId' => $product->id,
+                'variantId' => $combination->id,
+                'item' => static::buildVariantForDataCue($combination, $product, false),
+            ]
+        );
     }
 
     /**
@@ -125,5 +133,21 @@ class Variant
                 'variantId' => $combination->id,
             ]
         );
+
+        $product = new \Product($combination->id_product);
+        $combinations = $product->getWsCombinations();
+        if (count($combinations) === 0 && !empty($product->id)) {
+            Log::info('onProductAdd after all combinations deleted');
+            Queue::addJob(
+                'create',
+                'products',
+                $product->id,
+                [
+                    'productId' => $product->id,
+                    'variantId' => 'no-variants',
+                    'item' => Product::buildProductForDataCue($product, true),
+                ]
+            );
+        }
     }
 }

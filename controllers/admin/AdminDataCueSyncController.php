@@ -1,14 +1,17 @@
 <?php
 
-namespace DataCue\PrestaShop\Controllers\Admin;
-
-use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use DataCue\PrestaShop\Queue;
 use DataCue\PrestaShop\Common\Schedule;
 
-class SyncController extends FrameworkBundleAdminController
+class AdminDataCueSyncController extends ModuleAdminController
 {
-    public function statusAction()
+    public function initContent()
+    {
+        parent::initContent();
+        $this->ajax = true;
+    }
+
+    public function displayAjax()
     {
         (new Schedule())->maybeScheduleCron();
 
@@ -45,6 +48,7 @@ class SyncController extends FrameworkBundleAdminController
             }
         }
 
-        return $this->json($res);
+        // return $this->json($res);
+        die(Tools::jsonEncode($res));
     }
 }

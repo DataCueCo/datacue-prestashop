@@ -75,16 +75,9 @@ class Product
     public function onProductUpdate($product)
     {
         Log::info('onProductUpdate');
-        if ($job = Queue::getAliveJob('update', 'products', $product->id)) {
-            Queue::updateJob(
-                $job['id_datacue_queue'],
-                [
-                    'productId' => $product->id,
-                    'variantId' => 'no-variants',
-                    'item' => static::buildProductForDataCue($product, false),
-                ]
-            );
-        } else {
+        $combinations = $product->getWsCombinations();
+        Log::info('combinations count = ' . count($combinations));
+        if (count($combinations) === 0) {
             Queue::addJob(
                 'update',
                 'products',
@@ -96,10 +89,6 @@ class Product
                 ]
             );
         }
-
-        array_map(function ($item) use ($product) {
-            (new Variant())->onCombinationUpdate(new \Combination($item['id']), $product);
-        }, $product->getWsCombinations());
     }
 
     /**

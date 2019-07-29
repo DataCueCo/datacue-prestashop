@@ -32,7 +32,6 @@ function getSyncStatus() {
     type: 'GET',
     dataType: 'json'
   }).success(function(data) {
-    console.log('response', data);
     var html = '';
     Object.keys(data).forEach(function(key) {
       html += '<tr>';

@@ -43,7 +43,7 @@ class Datacue_prestashop extends Module
 
         $this->confirmUninstall = $this->l('');
 
-        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.7.4', 'max' => _PS_VERSION_);
     }
 
     /**
@@ -55,6 +55,7 @@ class Datacue_prestashop extends Module
         include(dirname(__FILE__).'/sql/install.php');
 
         return parent::install() &&
+            $this->installTab() &&
             $this->registerHook('header') &&
             $this->registerHook('actionObjectCustomerAddAfter') &&
             $this->registerHook('actionObjectCustomerUpdateAfter') &&
@@ -90,13 +91,28 @@ class Datacue_prestashop extends Module
         return parent::uninstall();
     }
 
+    private function installTab()
+    {
+        $tab = new Tab();
+        $tab->active = 1;
+        $tab->class_name = 'AdminDataCueSync';
+        $tab->name = [];
+        foreach (Language::getLanguages(true) as $lang) {
+            $tab->name[$lang['id_lang']] = $this->name;
+        }
+        $tab->id_parent = -1;
+        $tab->module = $this->name;
+
+        return $tab->save();
+    }
+
     /**
      * Load the configuration form
      */
     public function getContent()
     {
         \Media::addJsDef([
-            'syncStatusUrl' => $this->context->link->getLegacyAdminLink('AdminDataCueSync'),
+            'syncStatusUrl' => $this->context->link->getAdminLink('AdminDataCueSync'),
             'logUrlPrefix' => Utils::baseURL() . '/modules/datacue_prestashop/',
         ]);
 
@@ -241,7 +257,7 @@ class Datacue_prestashop extends Module
         $helper->token = Tools::getAdminTokenLite('AdminModules');
 
         $helper->tpl_vars = array(
-            'fields_value' => $this->getConfigFormValues(), /* Add values for your inputs */
+            'fields_value' => $this->getConfigFormValues(),
             'languages' => $this->context->controller->getLanguages(),
             'id_language' => $this->context->language->id,
         );
