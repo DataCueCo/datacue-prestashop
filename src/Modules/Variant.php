@@ -16,19 +16,22 @@ class Variant
      * @param \Combination $combination
      * @param \Product|null $product
      * @param bool $withId
-     * @return array
+     * @return array|null
      */
     public static function buildVariantForDataCue($combination, $product = null, $withId = false)
     {
         if (is_null($product)) {
             $product = new \Product($combination->id_product);
+            if (empty($product->id)) {
+                return null;
+            }
         }
         $item = [
             'name' => $product->name[1],
             'price' => empty($product->getPrice(false, $combination->id)) ? (float)($product->price + $combination->price) : $product->getPrice(false, $combination->id),
             'full_price' => (float)($product->price + $combination->price),
             'link' => \Context::getContext()->link->getProductLink($product, null, null, null, null, null, $combination->id),
-            'available' => $product->active === 1,
+            'available' => $product->active === '1' || $product->active === 1,
             'description' => $product->description[1],
             'photo_url' => empty($product->getCoverWs()) ? null : Utils::baseURL() . _PS_PROD_IMG_ . \Image::getImgFolderStatic($product->getCoverWs()) . $product->getCoverWs() . '.jpg',
             'stock' => \StockAvailable::getQuantityAvailableByProduct($product->id, $combination->id),
@@ -36,7 +39,7 @@ class Variant
                 return (new \Category($categoryId))->getName();
             }, $product->getCategories()),
             'main_category' => (new \Category($product->getDefaultCategory()))->getName(),
-            'brand' => $product->getWsManufacturerName(),
+            'brand' => $product->getWsManufacturerName() ? $product->getWsManufacturerName() : null,
         ];
         if ($withId) {
             $item['product_id'] = $product->id;

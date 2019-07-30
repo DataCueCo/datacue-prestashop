@@ -63,6 +63,8 @@ class Datacue_prestashop extends Module
             $this->registerHook('actionObjectProductAddAfter') &&
             $this->registerHook('actionProductUpdate') &&
             $this->registerHook('actionObjectProductDeleteAfter') &&
+            $this->registerHook('actionAdminProductsControllerActivateAfter') &&
+            $this->registerHook('actionAdminProductsControllerDeactivateAfter') &&
             $this->registerHook('actionObjectCombinationAddAfter') &&
             $this->registerHook('actionObjectCombinationUpdateAfter') &&
             $this->registerHook('actionObjectCombinationDeleteAfter') &&
@@ -491,6 +493,16 @@ class Datacue_prestashop extends Module
     public function hookActionObjectProductDeleteAfter($params)
     {
         (new Product())->onProductDelete($params['object']);
+    }
+
+    public function hookActionAdminProductsControllerActivateAfter($params)
+    {
+        (new Product())->onProductStatusUpdate($params['product_id']);
+    }
+
+    public function hookActionAdminProductsControllerDeactivateAfter($params)
+    {
+        (new Product())->onProductStatusUpdate($params['product_id']);
     }
 
     public function hookActionObjectCombinationAddAfter($params)

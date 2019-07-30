@@ -150,18 +150,25 @@ class Schedule
     private function doInit($model, $job)
     {
         if ($model === 'products') {
-            $res = $this->client->products->batchCreate(
-                array_map(function ($id) {
-                    return Product::buildProductForDataCue(Product::getProductById($id), true);
-                }, $job->ids)
-            );
+            $items = [];
+            foreach ($job->ids as $id) {
+                $product = Product::getProductById($id);
+                $combinations = $product->getWsCombinations();
+                if (count($combinations) === 0) {
+                    $items[] = Product::buildProductForDataCue($product, true);
+                }
+            }
+            $res = $this->client->products->batchCreate($items);
             Log::info('batch create products response: ' . $res);
         } elseif ($model === 'variants') {
-            $res = $this->client->products->batchCreate(
-                array_map(function ($id) {
-                    return Variant::buildVariantForDataCue(Variant::getVariantById($id), null, true);
-                }, $job->ids)
-            );
+            $items = [];
+            foreach ($job->ids as $id) {
+                $item = Variant::buildVariantForDataCue(Variant::getVariantById($id), null, true);
+                if (!is_null($item)) {
+                    $items[] = $item;
+                }
+            }
+            $res = $this->client->products->batchCreate($items);
             Log::info('batch create variants response: ' . $res);
         } elseif ($model === 'users') {
             $res = $this->client->users->batchCreate(

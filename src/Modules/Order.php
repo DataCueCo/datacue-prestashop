@@ -31,7 +31,7 @@ class Order
         $item['cart'] = array_map(function ($item) use ($currency) {
             return [
                 'product_id' => $item['product_id'],
-                'variant_id' => intval($item['product_attribute_id']) > 0 ? $item['product_attribute_id'] : 'no_variants',
+                'variant_id' => intval($item['product_attribute_id']) > 0 ? $item['product_attribute_id'] : 'no-variants',
                 'quantity' => $item['product_quantity'],
                 'unit_price' => $item['unit_price_tax_excl'],
                 'currency' => $currency->iso_code,
