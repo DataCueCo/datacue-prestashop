@@ -62,6 +62,7 @@ class Datacue_prestashop extends Module
             $this->registerHook('actionObjectCustomerDeleteAfter') &&
             $this->registerHook('actionObjectProductAddAfter') &&
             $this->registerHook('actionProductUpdate') &&
+            $this->registerHook('actionUpdateQuantity') &&
             $this->registerHook('actionObjectProductDeleteAfter') &&
             $this->registerHook('actionAdminProductsControllerActivateAfter') &&
             $this->registerHook('actionAdminProductsControllerDeactivateAfter') &&
@@ -391,6 +392,7 @@ class Datacue_prestashop extends Module
                         'name' => 'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_HOME_PAGE',
                         'options' => array(
                             'query' => array(
+                                array('id' => 'all', 'name' => 'All'),
                                 array('id' => 'recent', 'name' => 'Recently Viewed'),
                                 array('id' => 'similar', 'name' => 'Similar to current product'),
                                 array('id' => 'related', 'name' => 'Related Products'),
@@ -423,6 +425,7 @@ class Datacue_prestashop extends Module
                         'name' => 'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_PRODUCT_PAGE',
                         'options' => array(
                             'query' => array(
+                                array('id' => 'all', 'name' => 'All'),
                                 array('id' => 'recent', 'name' => 'Recently Viewed'),
                                 array('id' => 'similar', 'name' => 'Similar to current product'),
                                 array('id' => 'related', 'name' => 'Related Products'),
@@ -488,6 +491,11 @@ class Datacue_prestashop extends Module
     public function hookActionProductUpdate($params)
     {
         (new Product())->onProductUpdate($params['product']);
+    }
+
+    public function hookActionUpdateQuantity($params)
+    {
+        (new Product())->onProductQuantityUpdate($params['id_product'], $params['id_product_attribute']);
     }
 
     public function hookActionObjectProductDeleteAfter($params)

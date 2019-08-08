@@ -28,8 +28,8 @@ class Variant
         }
         $item = [
             'name' => $product->name[1],
-            'price' => empty($product->getPrice(false, $combination->id)) ? (float)($product->price + $combination->price) : $product->getPrice(false, $combination->id),
-            'full_price' => (float)($product->price + $combination->price),
+            'price' => static::getVariantPrice($product, $combination->id),
+            'full_price' => static::getVariantFullPrice($product, $combination->id),
             'link' => \Context::getContext()->link->getProductLink($product, null, null, null, null, null, $combination->id),
             'available' => $product->active === '1' || $product->active === 1,
             'description' => $product->description[1],
@@ -47,6 +47,30 @@ class Variant
         }
 
         return $item;
+    }
+
+    /**
+     * get variant real price
+     *
+     * @param \Product $product
+     * @param int $variantId
+     * @return float
+     */
+    public static function getVariantPrice($product, $variantId)
+    {
+        return $product->getPrice(true, $variantId);
+    }
+
+    /**
+     * get variant full price
+     * 
+     * @param \Product $product
+     * @param int $variantId
+     * @return float
+     */
+    public static function getVariantFullPrice($product, $variantId)
+    {
+        return $product->getPrice(true, $variantId, 6, null, false, false);
     }
 
     /**

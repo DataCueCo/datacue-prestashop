@@ -30,6 +30,11 @@ class Schedule
     const INTERVAL = 20;
 
     /**
+     * Process job count each time.
+     */
+    const JOBS_EACH_TIME = 3;
+
+    /**
      * Task status after initial
      */
     const STATUS_NONE = 0;
@@ -83,12 +88,6 @@ class Schedule
      */
     private function executeCron()
     {
-        Log::info('executeCron');
-        $job = Queue::getNextAliveJob();
-        if (!$job) {
-            return;
-        }
-
         $apiKey = Configuration::get('DATACUE_PRESTASHOP_API_KEY', null);
         $apiSecret = Configuration::get('DATACUE_PRESTASHOP_API_SECRET', null);
         if (!$apiKey || !$apiSecret) {
@@ -103,33 +102,41 @@ class Schedule
         );
 
         try {
-            if ($job['action'] === 'init') {
-                $this->doInit($job['model'], $job['job']);
-            } else {
-                switch ($job['model']) {
-                    case 'products':
-                        $this->doProductsJob($job['action'], $job['job']);
-                        break;
-                    case 'variants':
-                        $this->doVariantsJob($job['action'], $job['job']);
-                        break;
-                    case 'users':
-                        $this->doUsersJob($job['action'], $job['job']);
-                        break;
-                    case 'guest_users':
-                        $this->doUsersJob($job['action'], $job['job']);
-                        break;
-                    case 'orders':
-                        $this->doOrdersJob($job['action'], $job['job']);
-                        break;
-                    case 'events':
-                        $this->doEventJob($job['action'], $job['job']);
-                        break;
-                    default:
-                        break;
+            for ($i = 0; $i < static::JOBS_EACH_TIME; $i++) {
+                Log::info('executeCron');
+                $job = Queue::getNextAliveJob();
+                if (!$job) {
+                    return;
                 }
+                
+                if ($job['action'] === 'init') {
+                    $this->doInit($job['model'], $job['job']);
+                } else {
+                    switch ($job['model']) {
+                        case 'products':
+                            $this->doProductsJob($job['action'], $job['job']);
+                            break;
+                        case 'variants':
+                            $this->doVariantsJob($job['action'], $job['job']);
+                            break;
+                        case 'users':
+                            $this->doUsersJob($job['action'], $job['job']);
+                            break;
+                        case 'guest_users':
+                            $this->doUsersJob($job['action'], $job['job']);
+                            break;
+                        case 'orders':
+                            $this->doOrdersJob($job['action'], $job['job']);
+                            break;
+                        case 'events':
+                            $this->doEventJob($job['action'], $job['job']);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_SUCCESS);
             }
-            Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_SUCCESS);
         } catch (Exception $e) {
             Log::info($e->getMessage());
             Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_FAILURE);

@@ -21,8 +21,8 @@ class Product
     {
         $item = [
             'name' => $product->name[1],
-            'price' => empty($product->getPrice(false)) ? (float)$product->price : $product->getPrice(false),
-            'full_price' => (float)$product->price,
+            'price' => static::getProductPrice($product),
+            'full_price' => static::getProductFullPrice($product),
             'link' => $product->getLink(),
             'available' => $product->active === '1' || $product->active === 1,
             'description' => $product->description[1],
@@ -40,6 +40,28 @@ class Product
         }
 
         return $item;
+    }
+
+    /**
+     * get product real price
+     *
+     * @param \Product $product
+     * @return float
+     */
+    public static function getProductPrice($product)
+    {
+        return $product->getPrice(true);
+    }
+
+    /**
+     * get product full price
+     * 
+     * @param \Product $product
+     * @return float
+     */
+    public static function getProductFullPrice($product)
+    {
+        return $product->getPrice(true, null, 6, null, false, false);
     }
 
     /**
@@ -88,6 +110,34 @@ class Product
                     'item' => static::buildProductForDataCue($product, false),
                 ]
             );
+        }
+    }
+
+    /**
+     * @param int $productId
+     * @param int $variantId
+     * @return void
+     */
+    public function onProductQuantityUpdate($productId, $variantId)
+    {
+        Log::info('onProductQuantityUpdate');
+        if (empty($variantId)) {
+            $product = static::getProductById($productId);
+            $combinations = $product->getWsCombinations();
+            if (count($combinations) === 0) {
+                Queue::addJob(
+                    'update',
+                    'products',
+                    $productId,
+                    [
+                        'productId' => $productId,
+                        'variantId' => 'no-variants',
+                        'item' => static::buildProductForDataCue($product, false),
+                    ]
+                );
+            }
+        } else {
+            (new Variant())->onCombinationUpdate(Variant::getVariantById($variantId));
         }
     }
 
