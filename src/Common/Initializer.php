@@ -5,6 +5,7 @@ namespace DataCue\PrestaShop\Common;
 use DataCue\Client;
 use DataCue\PrestaShop\Queue;
 use DataCue\PrestaShop\Utils;
+use DataCue\PrestaShop\Utils\Log;
 
 /**
  * Class Initializer
@@ -84,7 +85,7 @@ class Initializer
      * @throws \DataCue\Exceptions\UnauthorizedException
      * @throws \PrestaShopDatabaseException
      */
-    public function batchCreateProducts()
+    public function batchCreateProducts($type = 'init')
     {
         $this->log('batchCreateProducts');
 
@@ -95,13 +96,16 @@ class Initializer
             return $item['id_product'];
         }, $products);
 
-        $res = $this->client->overview->products();
-        $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
-
-        $productIdsList = array_chunk(array_diff($productIds, $existingIds), static::CHUNK_SIZE);
+        if ($type === 'init') {
+            $res = $this->client->overview->products();
+            $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
+            $productIdsList = array_chunk(array_diff($productIds, $existingIds), static::CHUNK_SIZE);
+        } else {
+            $productIdsList = array_chunk($productIds, static::CHUNK_SIZE);
+        }
 
         foreach($productIdsList as $ids) {
-            Queue::addJobWithoutModelId('init', 'products', ['ids' => $ids]);
+            Queue::addJobWithoutModelId($type, 'products', ['ids' => $ids]);
         }
     }
 
@@ -115,12 +119,16 @@ class Initializer
      * @throws \DataCue\Exceptions\UnauthorizedException
      * @throws \PrestaShopDatabaseException
      */
-    public function batchCreateVariants()
+    public function batchCreateVariants($type = 'init')
     {
         $this->log('batchCreateVariants');
 
-        $res = $this->client->overview->products();
-        $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
+        if ($type === 'init') {
+            $res = $this->client->overview->products();
+            $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
+        } else {
+            $existingIds = [];
+        }
 
         if (count($existingIds) === 0) {
             $variants = \Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
@@ -139,7 +147,7 @@ class Initializer
         $variantIdsList = array_chunk(array_diff($variantIds, $existingIds), static::CHUNK_SIZE);
 
         foreach($variantIdsList as $ids) {
-            Queue::addJobWithoutModelId('init', 'variants', ['ids' => $ids]);
+            Queue::addJobWithoutModelId($type, 'variants', ['ids' => $ids]);
         }
     }
 
@@ -153,7 +161,7 @@ class Initializer
      * @throws \DataCue\Exceptions\UnauthorizedException
      * @throws \PrestaShopDatabaseException
      */
-    public function batchCreateUsers()
+    public function batchCreateUsers($type = 'init')
     {
         $this->log('batchCreateUsers');
 
@@ -164,13 +172,16 @@ class Initializer
             return $item['id_customer'];
         }, $users);
 
-        $res = $this->client->overview->users();
-        $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
-
-        $userIdsList = array_chunk(array_diff($userIds, $existingIds), static::CHUNK_SIZE);
+        if ($type === 'init') {
+            $res = $this->client->overview->users();
+            $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
+            $userIdsList = array_chunk(array_diff($userIds, $existingIds), static::CHUNK_SIZE);
+        } else {
+            $userIdsList = array_chunk($userIds, static::CHUNK_SIZE);
+        }
 
         foreach($userIdsList as $ids) {
-            Queue::addJobWithoutModelId('init', 'users', ['ids' => $ids]);
+            Queue::addJobWithoutModelId($type, 'users', ['ids' => $ids]);
         }
     }
 
@@ -184,7 +195,7 @@ class Initializer
      * @throws \DataCue\Exceptions\UnauthorizedException
      * @throws \PrestaShopDatabaseException
      */
-    public function batchCreateOrders()
+    public function batchCreateOrders($type = 'init')
     {
         $this->log('batchCreateOrders');
 
@@ -195,13 +206,16 @@ class Initializer
             return $item['id_order'];
         }, $orders);
 
-        $res = $this->client->overview->orders();
-        $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
-
-        $orderIdsList = array_chunk(array_diff($orderIds, $existingIds), static::CHUNK_SIZE);
+        if ($type === 'init') {
+            $res = $this->client->overview->orders();
+            $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
+            $orderIdsList = array_chunk(array_diff($orderIds, $existingIds), static::CHUNK_SIZE);
+        } else {
+            $orderIdsList = array_chunk($orderIds, static::CHUNK_SIZE);
+        }
 
         foreach($orderIdsList as $ids) {
-            Queue::addJobWithoutModelId('init', 'orders', ['ids' => $ids]);
+            Queue::addJobWithoutModelId($type, 'orders', ['ids' => $ids]);
         }
     }
 
@@ -239,6 +253,6 @@ class Initializer
      */
     private function log($message)
     {
-
+        Log::info($message);
     }
 }

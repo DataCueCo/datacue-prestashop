@@ -20,7 +20,7 @@
     ],
     "require": {
         "php": ">=5.5",
-        "datacue/client": "dev-1.0.4-dev"
+        "datacue/client": "1.0.7.x-dev"
     },
     "autoload": {
         "psr-4": {

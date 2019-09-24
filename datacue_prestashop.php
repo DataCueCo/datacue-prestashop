@@ -15,6 +15,7 @@ use DataCue\PrestaShop\Modules\Cart;
 use DataCue\PrestaShop\Widgets\Banner;
 use DataCue\PrestaShop\Common\Schedule;
 use DataCue\PrestaShop\Common\Initializer;
+use DataCue\PrestaShop\Common\ReSync;
 use DataCue\Exceptions\UnauthorizedException;
 use DataCue\PrestaShop\Utils;
 use DataCue\PrestaShop\Widgets\Products;
@@ -27,7 +28,7 @@ class Datacue_prestashop extends Module
     {
         $this->name = 'datacue_prestashop';
         $this->tab = 'advertising_marketing';
-        $this->version = '1.0.0';
+        $this->version = '1.1.0';
         $this->author = 'DataCue.Co';
         $this->need_instance = 1;
 
@@ -550,11 +551,13 @@ class Datacue_prestashop extends Module
 
     public function hookDisplayFooterAfter()
     {
+        (new ReSync())->maybeScheduleCron();
         (new Schedule())->maybeScheduleCron();
     }
 
     public function hookDisplayBackOfficeFooter()
     {
+        (new ReSync())->maybeScheduleCron();
         (new Schedule())->maybeScheduleCron();
     }
 

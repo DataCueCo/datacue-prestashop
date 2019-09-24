@@ -109,8 +109,8 @@ class Schedule
                     return;
                 }
                 
-                if ($job['action'] === 'init') {
-                    $this->doInit($job['model'], $job['job']);
+                if ($job['action'] === 'init' || $job['action'] === 'reinit') {
+                    $this->doInit($job['model'], $job['job'], $job['action']);
                 } else {
                     switch ($job['model']) {
                         case 'products':
@@ -146,6 +146,7 @@ class Schedule
     /**
      * @param $model
      * @param $job
+     * @param $action
      * @throws \DataCue\Exceptions\ClientException
      * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
      * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
@@ -154,16 +155,24 @@ class Schedule
      * @throws \DataCue\Exceptions\RetryCountReachedException
      * @throws \DataCue\Exceptions\UnauthorizedException
      */
-    private function doInit($model, $job)
+    private function doInit($model, $job, $action)
     {
         if ($model === 'products') {
             $items = [];
+            $variantIds = [];
             foreach ($job->ids as $id) {
                 $product = Product::getProductById($id);
                 $combinations = $product->getWsCombinations();
                 if (count($combinations) === 0) {
                     $items[] = Product::buildProductForDataCue($product, true);
+                } else {
+                    $variantIds = array_merge($variantIds, array_map(function ($item) {
+                        return $item['id'];
+                    }, $combinations));
                 }
+            }
+            if ($action === 'reinit' && count($variantIds) > 0) {
+                Queue::addJobWithoutModelId('reinit', 'variants', ['ids' => $variantIds]);
             }
             $res = $this->client->products->batchCreate($items);
             Log::info('batch create products response: ' . $res);
@@ -243,6 +252,10 @@ class Schedule
                     Log::info('delete product response: ' . $res);
                 }
                 break;
+            case 'delete_all':
+                $res = $this->client->products->deleteAll();
+                Log::info('delete all products response: ' . $res);
+                break;
             default:
                 break;
         }
@@ -290,6 +303,10 @@ class Schedule
                 $res = $this->client->users->delete($job->userId);
                 Log::info('delete user response: ' . $res);
                 break;
+            case 'delete_all':
+                $res = $this->client->users->deleteAll();
+                Log::info('delete all users response: ' . $res);
+                break;
             default:
                 break;
         }
@@ -320,6 +337,10 @@ class Schedule
             case 'delete':
                 $res = $this->client->orders->delete($job->orderId);
                 Log::info('delete order response: ', $res);
+                break;
+            case 'delete_all':
+                $res = $this->client->orders->deleteAll();
+                Log::info('delete all orders response: ' . $res);
                 break;
             default:
                 break;
