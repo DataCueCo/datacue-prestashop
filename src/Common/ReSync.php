@@ -171,7 +171,6 @@ class ReSync
             $this->getInitializer()->batchCreateOrders('reinit');
         } elseif (is_array($data)) {
             foreach ($data as $orderId) {
-                Queue::addJob('delete', 'orders', $orderId, ['orderId' => $orderId]);
                 $order = Order::getOrderById($orderId);
                 if (empty($order) || empty($order->id)) {
                     continue;
