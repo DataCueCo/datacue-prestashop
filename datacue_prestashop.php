@@ -19,6 +19,7 @@ use DataCue\PrestaShop\Common\ReSync;
 use DataCue\Exceptions\UnauthorizedException;
 use DataCue\PrestaShop\Utils;
 use DataCue\PrestaShop\Widgets\Products;
+use DataCue\Client;
 
 class Datacue_prestashop extends Module
 {
@@ -28,7 +29,7 @@ class Datacue_prestashop extends Module
     {
         $this->name = 'datacue_prestashop';
         $this->tab = 'advertising_marketing';
-        $this->version = '1.1.0';
+        $this->version = '1.1.1';
         $this->author = 'DataCue.Co';
         $this->need_instance = 1;
 
@@ -45,6 +46,8 @@ class Datacue_prestashop extends Module
         $this->confirmUninstall = $this->l('');
 
         $this->ps_versions_compliancy = array('min' => '1.7.4', 'max' => _PS_VERSION_);
+
+        Client::setIntegrationAndVersion('PrestaShop', $this->version);
     }
 
     /**
