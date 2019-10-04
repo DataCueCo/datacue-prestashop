@@ -25,6 +25,7 @@ class Order
         $item = [
             'user_id' => $order->getCustomer()->isGuest() ? $order->getCustomer()->email : $order->id_customer,
             'timestamp' => str_replace('+00:00', 'Z', gmdate('c', strtotime($order->date_add))),
+            'order_status' => intval($order->getCurrentState()) === 6 ? 'cancelled' : 'completed',
         ];
 
         $orderDetailList = $order->getOrderDetailList();
