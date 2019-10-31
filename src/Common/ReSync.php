@@ -4,6 +4,7 @@ namespace DataCue\PrestaShop\Common;
 
 use Configuration;
 use DataCue\Client;
+use DataCue\PrestaShop\Modules\Category;
 use DataCue\PrestaShop\Utils\Log;
 use DataCue\PrestaShop\Queue;
 use DataCue\PrestaShop\Modules\User;
@@ -78,6 +79,9 @@ class ReSync
             if (property_exists($data, 'users')) {
                 $this->executeUsers($data->users);
             }
+            if (property_exists($data, 'categories')) {
+                $this->executeCategories($data->categories);
+            }
             if (property_exists($data, 'products')) {
                 $this->executeProducts($data->products);
             }
@@ -112,6 +116,35 @@ class ReSync
                     [
                         'userId' => $userId,
                         'item' => User::buildUserForDataCue($user, false),
+                    ]
+                );
+            }
+        }
+    }
+
+    private function executeCategories($data)
+    {
+        if (is_null($data)) {
+            return;
+        }
+
+        if ($data === 'full') {
+            Queue::addJobWithoutModelId('delete_all', 'categories', []);
+            $this->getInitializer()->batchCreateCategories('reinit');
+        } elseif (is_array($data)) {
+            foreach ($data as $categoryId) {
+                Queue::addJob('delete', 'categories', $categoryId, ['categoryId' => $categoryId]);
+                $category = Category::getCategoryById($categoryId);
+                if (empty($category) || empty($category->id)) {
+                    continue;
+                }
+                Queue::addJob(
+                    'create',
+                    'categories',
+                    $categoryId,
+                    [
+                        'categoryId' => $categoryId,
+                        'item' => Category::buildCategoryForDataCue($category, true),
                     ]
                 );
             }

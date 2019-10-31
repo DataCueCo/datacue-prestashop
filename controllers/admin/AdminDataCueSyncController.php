@@ -16,6 +16,11 @@ class AdminDataCueSyncController extends ModuleAdminController
         (new Schedule())->maybeScheduleCron();
 
         $res = [
+            'categories' => [
+                'total' => 0,
+                'completed' => 0,
+                'failed' => 0,
+            ],
             'products' => [
                 'total' => 0,
                 'completed' => 0,

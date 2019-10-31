@@ -11,6 +11,7 @@ use DataCue\PrestaShop\Modules\Product;
 use DataCue\PrestaShop\Modules\User;
 use DataCue\PrestaShop\Modules\Variant;
 use DataCue\PrestaShop\Modules\Order;
+use DataCue\PrestaShop\Modules\Category;
 use DataCue\PrestaShop\Modules\Cart;
 use DataCue\PrestaShop\Widgets\Banner;
 use DataCue\PrestaShop\Common\Schedule;
@@ -29,7 +30,7 @@ class Datacue_prestashop extends Module
     {
         $this->name = 'datacue_prestashop';
         $this->tab = 'advertising_marketing';
-        $this->version = '1.1.3';
+        $this->version = '1.1.4';
         $this->author = 'DataCue.Co';
         $this->need_instance = 1;
 
@@ -73,6 +74,9 @@ class Datacue_prestashop extends Module
             $this->registerHook('actionObjectCombinationAddAfter') &&
             $this->registerHook('actionObjectCombinationUpdateAfter') &&
             $this->registerHook('actionObjectCombinationDeleteAfter') &&
+            $this->registerHook('actionObjectCategoryAddAfter') &&
+            $this->registerHook('actionObjectCategoryUpdateAfter') &&
+            $this->registerHook('actionObjectCategoryDeleteAfter') &&
             $this->registerHook('actionValidateOrder') &&
             $this->registerHook('actionObjectOrderDeleteAfter') &&
             $this->registerHook('actionOrderStatusPostUpdate') &&
@@ -530,6 +534,21 @@ class Datacue_prestashop extends Module
     public function hookActionObjectCombinationDeleteAfter($params)
     {
         (new Variant())->onCombinationDelete($params['object']);
+    }
+
+    public function hookActionObjectCategoryAddAfter($params)
+    {
+        (new Category())->onCategoryAdd($params['object']);
+    }
+
+    public function hookActionObjectCategoryUpdateAfter($params)
+    {
+        (new Category())->onCategoryUpdate($params['object']);
+    }
+
+    public function hookActionObjectCategoryDeleteAfter($params)
+    {
+        (new Category())->onCategoryDelete($params['object']);
     }
 
     public function hookActionValidateOrder($params)

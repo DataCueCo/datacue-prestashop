@@ -3,6 +3,7 @@
 namespace DataCue\PrestaShop\Common;
 
 use Configuration;
+use DataCue\PrestaShop\Modules\Category;
 use DataCue\PrestaShop\Modules\Order;
 use DataCue\PrestaShop\Modules\Product;
 use DataCue\PrestaShop\Modules\User;
@@ -128,6 +129,9 @@ class Schedule
                         case 'orders':
                             $this->doOrdersJob($job['action'], $job['job']);
                             break;
+                        case 'categories':
+                            $this->doCategoriesJob($job['action'], $job['job']);
+                            break;
                         case 'events':
                             $this->doEventJob($job['action'], $job['job']);
                             break;
@@ -218,6 +222,14 @@ class Schedule
             }
             $res = $this->client->orders->batchCreate($orderData);
             Log::info('batch create orders response: ' . $res);
+        } elseif ($model === 'categories') {
+            $data = [];
+            foreach ($job->ids as $id) {
+                $category = Category::getCategoryById($id);
+                $data[] = Category::buildCategoryForDataCue($category, true);
+            }
+            $res = $this->client->categories->batchCreate($data);
+            Log::info('batch create categories response: ' . $res);
         }
     }
 
@@ -341,6 +353,41 @@ class Schedule
             case 'delete_all':
                 $res = $this->client->orders->deleteAll();
                 Log::info('delete all orders response: ' . $res);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * @param $action
+     * @param $job
+     * @throws \DataCue\Exceptions\ClientException
+     * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
+     * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
+     * @throws \DataCue\Exceptions\InvalidEnvironmentException
+     * @throws \DataCue\Exceptions\NetworkErrorException
+     * @throws \DataCue\Exceptions\RetryCountReachedException
+     * @throws \DataCue\Exceptions\UnauthorizedException
+     */
+    private function doCategoriesJob($action, $job)
+    {
+        switch ($action) {
+            case 'create':
+                $res = $this->client->categories->create($job->item);
+                Log::info('create category response: ' . $res);
+                break;
+            case 'update':
+                $res = $this->client->categories->update($job->categoryId, $job->item);
+                Log::info('update category response: ' . $res);
+                break;
+            case 'delete':
+                $res = $this->client->categories->delete($job->categoryId);
+                Log::info('delete category response: ' . $res);
+                break;
+            case 'delete_all':
+                $res = $this->client->categories->deleteAll();
+                Log::info('delete all categories response: ' . $res);
                 break;
             default:
                 break;

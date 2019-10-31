@@ -73,6 +73,7 @@ class Initializer
         $this->batchCreateVariants();
         $this->batchCreateUsers();
         $this->batchCreateOrders();
+        $this->batchCreateCategories();
     }
 
     /**
@@ -216,6 +217,41 @@ class Initializer
 
         foreach($orderIdsList as $ids) {
             Queue::addJobWithoutModelId($type, 'orders', ['ids' => $ids]);
+        }
+    }
+
+    /**
+     * @param string $type
+     * @throws \DataCue\Exceptions\ClientException
+     * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
+     * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
+     * @throws \DataCue\Exceptions\InvalidEnvironmentException
+     * @throws \DataCue\Exceptions\NetworkErrorException
+     * @throws \DataCue\Exceptions\RetryCountReachedException
+     * @throws \DataCue\Exceptions\UnauthorizedException
+     * @throws \PrestaShopDatabaseException
+     */
+    public function batchCreateCategories($type = 'init')
+    {
+        $this->log('batchCreateCategories');
+
+        $categories = \Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
+            SELECT `id_category` FROM `' . _DB_PREFIX_ . 'category` ORDER BY `id_category` ASC'
+        );
+        $categoryIds = array_map(function ($item) {
+            return $item['id_category'];
+        }, $categories);
+
+        if ($type === 'init') {
+            $res = $this->client->overview->categories();
+            $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
+            $categoryIdsList = array_chunk(array_diff($categoryIds, $existingIds), static::CHUNK_SIZE);
+        } else {
+            $categoryIdsList = array_chunk($categoryIds, static::CHUNK_SIZE);
+        }
+
+        foreach($categoryIdsList as $ids) {
+            Queue::addJobWithoutModelId($type, 'categories', ['ids' => $ids]);
         }
     }
 
