@@ -4,6 +4,7 @@ namespace DataCue\PrestaShop\Events;
 
 use DataCue\PrestaShop\Modules\Cart;
 use DataCue\PrestaShop\Modules\Product;
+use DataCue\PrestaShop\Modules\Variant;
 use Tools;
 use Media;
 use Configuration;
@@ -154,7 +155,8 @@ class BrowserEvents
     {
         $this->addDatacueConfig([
             'page_type' => 'category',
-            'category_name' => Category::getCategoryNameById($this->values['id_category']),
+            'category_id' => "" . $this->values['id_category'],
+            'category_update' => Category::buildCategoryForDataCue(Category::getCategoryById($this->values['id_category'])),
         ]);
         $this->addPublicJS();
     }
@@ -164,10 +166,22 @@ class BrowserEvents
      */
     private function addJSToProductPage()
     {
+        $product = Product::getProductById($this->values['id_product']);
+        $variantIds = array_map(function ($item) {
+            return $item['id'];
+        }, $product->getWsCombinations());
+
+        if (count($variantIds) > 0) {
+            $productUpdate = array_map(function ($id) use ($product) {
+                return Variant::buildVariantForDataCue(Variant::getVariantById($id), $product, true);
+            }, $variantIds);
+        } else {
+            $productUpdate = [Product::buildProductForDataCue(Product::getProductById($this->values['id_product']), true)];
+        }
         $this->addDatacueConfig([
             'page_type' => 'product',
-            'product_id' => $this->values['id_product'],
-            'product_update' => Product::buildProductForDataCue(Product::getProductById($this->values['id_product']), true),
+            'product_id' => "" . $this->values['id_product'],
+            'product_update' => $productUpdate,
         ]);
         $this->addPublicJS();
     }

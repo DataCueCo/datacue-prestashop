@@ -28,14 +28,11 @@ class Product
             'description' => $product->description[1],
             'photo_url' => empty($product->getCoverWs()) ? null : Utils::baseURL() . _PS_PROD_IMG_ . \Image::getImgFolderStatic($product->getCoverWs()) . $product->getCoverWs() . '.jpg',
             'stock' => \StockAvailable::getQuantityAvailableByProduct($product->id),
-            'categories' => array_map(function ($categoryId) {
-                return (new \Category($categoryId))->getName();
-            }, $product->getCategories()),
-            'main_category' => (new \Category($product->getDefaultCategory()))->getName(),
+            'category_ids' => $product->getCategories(),
             'brand' => $product->getWsManufacturerName() ? $product->getWsManufacturerName() : null,
         ];
         if ($withId) {
-            $item['product_id'] = $product->id;
+            $item['product_id'] = "" . $product->id;
             $item['variant_id'] = 'no-variants';
         }
 

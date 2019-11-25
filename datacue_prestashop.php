@@ -30,7 +30,7 @@ class Datacue_prestashop extends Module
     {
         $this->name = 'datacue_prestashop';
         $this->tab = 'advertising_marketing';
-        $this->version = '1.1.4';
+        $this->version = '1.1.5';
         $this->author = 'DataCue.Co';
         $this->need_instance = 1;
 
