@@ -149,4 +149,11 @@ class Queue
             WHERE `id_datacue_queue` = $id"
         );
     }
+
+    public static function deleteAllJobs()
+    {
+        return \Db::getInstance()->execute(
+            "DELETE FROM `" . _DB_PREFIX_ . "datacue_queue`"
+        );
+    }
 }

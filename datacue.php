@@ -130,17 +130,24 @@ class DataCue extends Module
 
     private function installTab()
     {
-        $tab = new Tab();
-        $tab->active = 1;
-        $tab->class_name = 'AdminDataCueSync';
-        $tab->name = [];
-        foreach (Language::getLanguages(true) as $lang) {
-            $tab->name[$lang['id_lang']] = $this->name;
-        }
-        $tab->id_parent = -1;
-        $tab->module = $this->name;
+        $controllers = ['AdminDataCueSync', 'AdminDataCueDisconnect'];
+        foreach ($controllers as $controller) {
+            $tab = new Tab();
+            $tab->active = 1;
+            $tab->class_name = $controller;
+            $tab->name = [];
+            foreach (Language::getLanguages(true) as $lang) {
+                $tab->name[$lang['id_lang']] = $this->name;
+            }
+            $tab->id_parent = -1;
+            $tab->module = $this->name;
 
-        return $tab->save();
+            if (!$tab->save()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -150,7 +157,8 @@ class DataCue extends Module
     {
         \Media::addJsDef([
             'syncStatusUrl' => $this->context->link->getAdminLink('AdminDataCueSync'),
-            'logUrlPrefix' => Utils::baseURL() . '/modules/datacue_prestashop/',
+            'disconnectUrl' => $this->context->link->getAdminLink('AdminDataCueDisconnect'),
+            'logUrlPrefix' => Utils::baseURL() . '/modules/datacue/',
         ]);
 
         $this->context->controller->addCSS($this->_path . 'views/css/back.css', 'all');
@@ -208,30 +216,45 @@ class DataCue extends Module
     protected function renderBaseSettingsTab()
     {
         $output = '';
+        $apiKey = Configuration::get('DATACUE_PRESTASHOP_API_KEY', null);
+        $apiSecret = Configuration::get('DATACUE_PRESTASHOP_API_SECRET', null);
 
-        try {
-            if ((bool)Tools::isSubmit('datacueBaseSettings')) {
-                (new Initializer(
-                    Tools::getValue('DATACUE_PRESTASHOP_API_KEY'),
-                    Tools::getValue('DATACUE_PRESTASHOP_API_SECRET')
-                ))->maybeSyncData();
+        if ((bool)Tools::isSubmit('datacueBaseSettings')) {
+            $newKey = Tools::getValue('DATACUE_PRESTASHOP_API_KEY');
+            $newSecret = Tools::getValue('DATACUE_PRESTASHOP_API_SECRET');
 
-                $fieldKeys = ['DATACUE_PRESTASHOP_API_KEY', 'DATACUE_PRESTASHOP_API_SECRET'];
-                foreach ($fieldKeys as $key) {
-                    Configuration::updateValue($key, Tools::getValue($key));
+            if (trim($newKey) !== '' && trim($newSecret) !== '' && ($apiKey !== $newKey || $apiSecret !== $newSecret)) {
+                try {
+                    (new Initializer($newKey, $newSecret))->maybeSyncData();
+
+                    $fieldKeys = ['DATACUE_PRESTASHOP_API_KEY', 'DATACUE_PRESTASHOP_API_SECRET'];
+                    foreach ($fieldKeys as $key) {
+                        Configuration::updateValue($key, Tools::getValue($key));
+                    }
+                    Configuration::updateValue('DATACUE_PRESTASHOP_CONNECTED', '1');
+                    $output = $output . $this->context->smarty
+                            ->fetch($this->local_path . 'views/templates/admin/success.tpl');
+                    $apiKey = $newKey;
+                    $apiSecret = $newSecret;
+                } catch (UnauthorizedException $e) {
+                    $output = $output . $this->context->smarty
+                            ->fetch($this->local_path . 'views/templates/admin/unauthorizedError.tpl');
+                } catch (Exception $e) {
+                    $output = $output . $this->context->smarty
+                            ->fetch($this->local_path . 'views/templates/admin/error.tpl');
                 }
-                $output = $output . $this->context->smarty
-                        ->fetch($this->local_path . 'views/templates/admin/success.tpl');
             }
-        } catch (UnauthorizedException $e) {
-            $output = $output . $this->context->smarty
-                    ->fetch($this->local_path . 'views/templates/admin/unauthorizedError.tpl');
-        } catch (Exception $e) {
-            $output = $output . $this->context->smarty
-                    ->fetch($this->local_path . 'views/templates/admin/error.tpl');
         }
 
-        return $output . $this->renderForm('datacueBaseSettings', 'baseSettingForm');
+        $connected = Configuration::get('DATACUE_PRESTASHOP_CONNECTED', null) === '1';
+
+        if ($connected) {
+            $this->context->smarty->assign(['api_key' => $apiKey]);
+            return $output . $this->context->smarty
+                    ->fetch($this->local_path . 'views/templates/admin/disconnectSection.tpl');
+        } else {
+            return $output . $this->renderForm('datacueBaseSettings', 'baseSettingForm');
+        }
     }
 
     protected function renderBannersTab()

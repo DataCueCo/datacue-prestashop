@@ -22,5 +22,20 @@
 *  @license   https://opensource.org/licenses/MIT MIT License
 *}
 
-{$log_dates}
-<iframe id="datacue-log-frame" src="" style="width: 100%; height: 500px; border: 0.5px solid #eee; margin-top: 5px;"></iframe>
+<div class="datacue-disconnect-section">
+	<p style="font-size: 18px;">Congratulate! You have connected to DataCue.</p>
+	<p>Your Api Key: {$api_key}</p>
+	<a id="btn-disconnect" class="btn-disconnect" href="javascript:;">DISCONNECT FROM DATACUE</a>
+</div>
+<div id="dialog-disconnect" class="hide">
+	<div class="card">
+		<div class="title">Are you sure?</div>
+		<div class="description">
+			Disconnecting will delete all data from DataCue and disable recommendations!
+		</div>
+		<div class="footer">
+			<button id="disconnect-ok">Disconnect</button>
+			<button id="disconnect-cancel">Cancel</button>
+		</div>
+	</div>
+</div>

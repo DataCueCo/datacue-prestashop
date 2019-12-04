@@ -1,3 +1,4 @@
+<?php
 /**
  * MIT License
  * Copyright (c) 2019 DataCue
@@ -21,3 +22,45 @@
  *  @copyright 2019 DataCue
  *  @license   https://opensource.org/licenses/MIT MIT License
  */
+
+use DataCue\Client;
+use DataCue\PrestaShop\Utils;
+use DataCue\PrestaShop\Queue;
+
+class AdminDataCueDisconnectController extends ModuleAdminController
+{
+    /**
+     * Max try times
+     */
+    const MAX_TRY_TIMES = 3;
+
+    public function initContent()
+    {
+        parent::initContent();
+        $this->ajax = true;
+    }
+
+    public function displayAjax()
+    {
+        $apiKey = Configuration::get('DATACUE_PRESTASHOP_API_KEY', null);
+        $apiSecret = Configuration::get('DATACUE_PRESTASHOP_API_SECRET', null);
+
+        try {
+            $client = new Client(
+                $apiKey,
+                $apiSecret,
+                ['max_try_times' => static::MAX_TRY_TIMES],
+                Utils::isStaging() ? 'development' : 'production'
+            );
+            $client->client->clear();
+        } catch (\Exception $e) {
+        }
+
+        Queue::deleteAllJobs();
+        Configuration::deleteByName('DATACUE_PRESTASHOP_API_KEY');
+        Configuration::deleteByName('DATACUE_PRESTASHOP_API_SECRET');
+        Configuration::deleteByName('DATACUE_PRESTASHOP_CONNECTED');
+
+        die(Tools::jsonEncode([]));
+    }
+}

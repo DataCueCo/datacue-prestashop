@@ -61,4 +61,23 @@ $(document).ready(function() {
   $("#datacue-logs-date-select").change(function() {
     getLogOfDate($("#datacue-logs-date-select").val());
   });
+
+  $("#btn-disconnect").on("click", function() {
+    $("#dialog-disconnect").removeClass("hide");
+  });
+
+  $("#disconnect-ok").on("click", function() {
+    $.ajax({
+      url: disconnectUrl,
+      type: 'POST',
+      dataType: 'json',
+    }).done(function () {
+      $("#dialog-disconnect").addClass("hide");
+      window.location.href = window.location.href;
+    });
+  });
+
+  $("#disconnect-cancel").on("click", function() {
+    $("#dialog-disconnect").addClass("hide");
+  });
 });
