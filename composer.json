@@ -14,6 +14,9 @@
             "email": "ruiminch@163.com"
         }
     ],
+    "config": {
+        "prepend-autoloader": false
+    },
     "minimum-stability": "stable",
     "repositories": [
         { "type": "vcs", "url": "https://github.com/DataCueCo/datacue-php" }

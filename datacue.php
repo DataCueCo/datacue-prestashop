@@ -1,10 +1,33 @@
 <?php
+/**
+ * MIT License
+ * Copyright (c) 2019 DataCue
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ *  @author    DataCue <contact@datacue.co>
+ *  @copyright 2019 DataCue
+ *  @license   https://opensource.org/licenses/MIT MIT License
+ */
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once dirname(__FILE__) . '/vendor/autoload.php';
 
 use DataCue\PrestaShop\Events\BrowserEvents;
 use DataCue\PrestaShop\Modules\Product;
@@ -22,15 +45,15 @@ use DataCue\PrestaShop\Utils;
 use DataCue\PrestaShop\Widgets\Products;
 use DataCue\Client;
 
-class Datacue_prestashop extends Module
+class DataCue extends Module
 {
     protected $config_form = false;
 
     public function __construct()
     {
-        $this->name = 'datacue_prestashop';
+        $this->name = 'datacue';
         $this->tab = 'advertising_marketing';
-        $this->version = '1.1.5';
+        $this->version = '1.1.6';
         $this->author = 'DataCue.Co';
         $this->need_instance = 1;
 
@@ -48,7 +71,10 @@ class Datacue_prestashop extends Module
 
         $this->ps_versions_compliancy = array('min' => '1.7.4', 'max' => _PS_VERSION_);
 
-        Client::setIntegrationAndVersion('PrestaShop', $this->version);
+        try {
+            Client::setIntegrationAndVersion('PrestaShop', $this->version);
+        } catch (Exception $e) {
+        }
     }
 
     /**
@@ -57,7 +83,7 @@ class Datacue_prestashop extends Module
      */
     public function install()
     {
-        include(dirname(__FILE__).'/sql/install.php');
+        include(dirname(__FILE__) . '/sql/install.php');
 
         return parent::install() &&
             $this->installTab() &&
@@ -97,7 +123,7 @@ class Datacue_prestashop extends Module
         } catch (Exception $e) {
         }
 
-        include(dirname(__FILE__).'/sql/uninstall.php');
+        include(dirname(__FILE__) . '/sql/uninstall.php');
 
         return parent::uninstall();
     }
@@ -139,27 +165,41 @@ class Datacue_prestashop extends Module
         return '
             <div class="form-wrapper">
                 <ul class="nav nav-tabs">
-                    <li class="' . ($currentTab === 'base-settings' ? 'active' : '') . '"><a href="#base-settings" data-toggle="tab">Base Settings</a></li>
-                    <li class="' . ($currentTab === 'recommendations' ? 'active' : '') . '"><a href="#recommendations" data-toggle="tab">Recommendations</a></li>
-                    <li class="' . ($currentTab === 'sync-status' ? 'active' : '') . '"><a href="#sync-status" data-toggle="tab">Sync Status</a></li>
-                    <li class="' . ($currentTab === 'logs' ? 'active' : '') . '"><a href="#logs" data-toggle="tab">Logs</a></li>
+                    <li class="' . ($currentTab === 'base-settings' ? 'active' : '') . '">
+                        <a href="#base-settings" data-toggle="tab">Base Settings</a>
+                    </li>
+                    <li class="' . ($currentTab === 'recommendations' ? 'active' : '') . '">
+                        <a href="#recommendations" data-toggle="tab">Recommendations</a>
+                    </li>
+                    <li class="' . ($currentTab === 'sync-status' ? 'active' : '') . '">
+                        <a href="#sync-status" data-toggle="tab">Sync Status</a>
+                    </li>
+                    <li class="' . ($currentTab === 'logs' ? 'active' : '') . '">
+                        <a href="#logs" data-toggle="tab">Logs</a>
+                    </li>
                 </ul>
                 <div class="tab-content panel">
                     <div id="base-settings" class="tab-pane ' . ($currentTab === 'base-settings' ? 'active' : '') . '">
                         ' . $this->renderBaseSettingsTab()
-                        . $this->context->smarty->fetch($this->local_path.'views/templates/admin/baseSettingsFooter.tpl') . '
+            . $this->context->smarty
+                ->fetch($this->local_path . 'views/templates/admin/baseSettingsFooter.tpl') . '
                     </div>
-                    <div id="recommendations" class="tab-pane ' . ($currentTab === 'recommendations' ? 'active' : '') . '">
+                    <div id="recommendations"
+                        class="tab-pane ' . ($currentTab === 'recommendations' ? 'active' : '') . '">
                         ' . $this->renderBannersTab()
-                        . $this->context->smarty->fetch($this->local_path.'views/templates/admin/bannersFooter.tpl')
-                        . $this->renderProductsTab()
-                        . $this->context->smarty->fetch($this->local_path.'views/templates/admin/productsFooter.tpl')
-                        . $this->context->smarty->fetch($this->local_path.'views/templates/admin/recommendationsFooter.tpl') . '
+            . $this->context->smarty
+                ->fetch($this->local_path . 'views/templates/admin/bannersFooter.tpl')
+            . $this->renderProductsTab()
+            . $this->context->smarty
+                ->fetch($this->local_path . 'views/templates/admin/productsFooter.tpl')
+            . $this->context->smarty
+                ->fetch($this->local_path . 'views/templates/admin/recommendationsFooter.tpl') . '
                     </div>
                     <div id="sync-status" class="tab-pane ' . ($currentTab === 'sync-status' ? 'active' : '') . '">'
-                        . $this->context->smarty->fetch($this->local_path.'views/templates/admin/syncStatus.tpl') . '</div>
+            . $this->context->smarty
+                ->fetch($this->local_path . 'views/templates/admin/syncStatus.tpl') . '</div>
                     <div id="logs" class="tab-pane ' . ($currentTab === 'logs' ? 'active' : '') . '">'
-                        . $this->renderLogsTab() . '</div>
+            . $this->renderLogsTab() . '</div>
                 </div>
             </div>
         ';
@@ -180,15 +220,18 @@ class Datacue_prestashop extends Module
                 foreach ($fieldKeys as $key) {
                     Configuration::updateValue($key, Tools::getValue($key));
                 }
-                $output = $output.$this->context->smarty->fetch($this->local_path.'views/templates/admin/success.tpl');
+                $output = $output . $this->context->smarty
+                        ->fetch($this->local_path . 'views/templates/admin/success.tpl');
             }
         } catch (UnauthorizedException $e) {
-            $output = $output.$this->context->smarty->fetch($this->local_path.'views/templates/admin/unauthorizedError.tpl');
+            $output = $output . $this->context->smarty
+                    ->fetch($this->local_path . 'views/templates/admin/unauthorizedError.tpl');
         } catch (Exception $e) {
-            $output = $output.$this->context->smarty->fetch($this->local_path.'views/templates/admin/error.tpl');
+            $output = $output . $this->context->smarty
+                    ->fetch($this->local_path . 'views/templates/admin/error.tpl');
         }
 
-        return $output.$this->renderForm('datacueBaseSettings', 'baseSettingForm');
+        return $output . $this->renderForm('datacueBaseSettings', 'baseSettingForm');
     }
 
     protected function renderBannersTab()
@@ -204,10 +247,11 @@ class Datacue_prestashop extends Module
             foreach ($fieldKeys as $key) {
                 Configuration::updateValue($key, Tools::getValue($key));
             }
-            $output = $output.$this->context->smarty->fetch($this->local_path.'views/templates/admin/success.tpl');
+            $output = $output . $this->context->smarty
+                    ->fetch($this->local_path . 'views/templates/admin/success.tpl');
         }
 
-        return $output.$this->renderForm('datacueBanners', 'bannersForm');
+        return $output . $this->renderForm('datacueBanners', 'bannersForm');
     }
 
     protected function renderProductsTab()
@@ -224,10 +268,11 @@ class Datacue_prestashop extends Module
             foreach ($fieldKeys as $key) {
                 Configuration::updateValue($key, Tools::getValue($key));
             }
-            $output = $output.$this->context->smarty->fetch($this->local_path.'views/templates/admin/success.tpl');
+            $output = $output . $this->context->smarty
+                    ->fetch($this->local_path . 'views/templates/admin/success.tpl');
         }
 
-        return $output.$this->renderForm('datacueProducts', 'productsForm');
+        return $output . $this->renderForm('datacueProducts', 'productsForm');
     }
 
     protected function renderLogsTab()
@@ -237,7 +282,7 @@ class Datacue_prestashop extends Module
         $timestamp = time();
         for ($i = 0; $i < 3; $i++) {
             $date = date('Y-m-d', $timestamp);
-            if (file_exists(__DIR__ . "/datacue-$date.log")) {
+            if (file_exists(dirname(__FILE__) . "/datacue-$date.log")) {
                 $dates .= "<option value=\"$date\"" . ($i === 0 ? ' selected' : '') . ">$date</option>";
             }
             $timestamp -= 24 * 3600;
@@ -245,7 +290,7 @@ class Datacue_prestashop extends Module
         $dates .= '</select>';
 
         $this->context->smarty->assign(['log_dates' => $dates]);
-        return $this->context->smarty->fetch($this->local_path.'views/templates/admin/logs.tpl');
+        return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/logs.tpl');
     }
 
     /**
@@ -264,7 +309,7 @@ class Datacue_prestashop extends Module
         $helper->identifier = $this->identifier;
         $helper->submit_action = $action;
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-            .'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
+            . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
 
         $helper->tpl_vars = array(
@@ -456,15 +501,24 @@ class Datacue_prestashop extends Module
     protected function getConfigFormValues()
     {
         return array(
-            'DATACUE_PRESTASHOP_API_KEY' => Configuration::get('DATACUE_PRESTASHOP_API_KEY', null),
-            'DATACUE_PRESTASHOP_API_SECRET' => Configuration::get('DATACUE_PRESTASHOP_API_SECRET', null),
-            'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE', null),
-            'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_HOME_PAGE' => Configuration::get('DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_HOME_PAGE', null),
-            'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE' => Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE', null),
-            'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_PRODUCT_PAGE' => Configuration::get('DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_PRODUCT_PAGE', null),
-            'DATACUE_PRESTASHOP_SHOW_BANNER' => Configuration::get('DATACUE_PRESTASHOP_SHOW_BANNER', null),
-            'DATACUE_PRESTASHOP_BANNER_IMAGE' => Configuration::get('DATACUE_PRESTASHOP_BANNER_IMAGE', null),
-            'DATACUE_PRESTASHOP_BANNER_LINK' => Configuration::get('DATACUE_PRESTASHOP_BANNER_LINK', null),
+            'DATACUE_PRESTASHOP_API_KEY' =>
+                Configuration::get('DATACUE_PRESTASHOP_API_KEY', null),
+            'DATACUE_PRESTASHOP_API_SECRET' =>
+                Configuration::get('DATACUE_PRESTASHOP_API_SECRET', null),
+            'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE'=>
+                Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE', null),
+            'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_HOME_PAGE' =>
+                Configuration::get('DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_HOME_PAGE', null),
+            'DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE' =>
+                Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE', null),
+            'DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_PRODUCT_PAGE' =>
+                Configuration::get('DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_PRODUCT_PAGE', null),
+            'DATACUE_PRESTASHOP_SHOW_BANNER' =>
+                Configuration::get('DATACUE_PRESTASHOP_SHOW_BANNER', null),
+            'DATACUE_PRESTASHOP_BANNER_IMAGE' =>
+                Configuration::get('DATACUE_PRESTASHOP_BANNER_IMAGE', null),
+            'DATACUE_PRESTASHOP_BANNER_LINK' =>
+                Configuration::get('DATACUE_PRESTASHOP_BANNER_LINK', null),
         );
     }
 

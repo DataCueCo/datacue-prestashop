@@ -29,3 +29,13 @@ To uninstall DataCue for PrestaShop, follow these steps.
 3. Click the **Disable** button on the drop down menu.
 
 4. Click the **Uninstall** button on the drop down menu.
+
+## Before uploading the module to PrestaShop Addons Marketplace
+
+1. Copy the module folder to a temporary place.
+
+2. Enter the temporary folder.
+
+3. Run ```./release.sh```
+
+4. Zip the whole folder using your favourite ZIP compression tool
