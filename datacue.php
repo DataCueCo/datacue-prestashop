@@ -56,6 +56,8 @@ class DataCue extends Module
         $this->version = '1.1.6';
         $this->author = 'DataCue.Co';
         $this->need_instance = 1;
+        $this->ps_versions_compliancy = array('min' => '1.7.4.0', 'max' => '2');
+        $this->module_key = 'ab643ca3bc12cebf5cf610afb57c0de9';
 
         /**
          * Set $this->bootstrap to true if your module is compliant with bootstrap (PrestaShop 1.6)
