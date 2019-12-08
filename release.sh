@@ -20,4 +20,5 @@ read_dir_and_insert_index $ROOT_DIR
 rm -fr $ROOT_DIR/.git
 rm -fr $ROOT_DIR/vendor/datacue/client/.git
 rm -fr $ROOT_DIR/.DS_Store
+rm -fr $ROOT_DIR/config.xml
 rm $ROOT_DIR/release.sh
