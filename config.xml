@@ -2,7 +2,7 @@
 <module>
     <name>datacue</name>
     <displayName><![CDATA[DataCue for PrestaShop]]></displayName>
-    <version><![CDATA[1.1.6]]></version>
+    <version><![CDATA[1.1.7]]></version>
     <description><![CDATA[DataCue for PrestaShop]]></description>
     <author><![CDATA[DataCue.Co]]></author>
     <tab><![CDATA[advertising_marketing]]></tab>

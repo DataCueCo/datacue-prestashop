@@ -24,7 +24,7 @@
 
 <div class="datacue-disconnect-section">
 	<p style="font-size: 18px;">Congratulate! You have connected to DataCue.</p>
-	<p>Your Api Key: {$api_key}</p>
+	<p>Your Api Key: {$api_key|escape:'htmlall':'UTF-8'}</p>
 	<a id="btn-disconnect" class="btn-disconnect" href="javascript:;">DISCONNECT FROM DATACUE</a>
 </div>
 <div id="dialog-disconnect" class="hide">

@@ -53,7 +53,7 @@ class DataCue extends Module
     {
         $this->name = 'datacue';
         $this->tab = 'advertising_marketing';
-        $this->version = '1.1.6';
+        $this->version = '1.1.7';
         $this->author = 'DataCue.Co';
         $this->need_instance = 1;
 
@@ -301,16 +301,18 @@ class DataCue extends Module
     protected function renderLogsTab()
     {
         // Dates
-        $dates = '<select id="datacue-logs-date-select" style="width: 150px;">';
+        $dates = [];
         $timestamp = time();
         for ($i = 0; $i < 3; $i++) {
             $date = date('Y-m-d', $timestamp);
             if (file_exists(dirname(__FILE__) . "/datacue-$date.log")) {
-                $dates .= "<option value=\"$date\"" . ($i === 0 ? ' selected' : '') . ">$date</option>";
+                $dates[] = [
+                    'value' => $date,
+                    'selected' => count($dates) === 0 ? 'selected' : '',
+                ];
             }
             $timestamp -= 24 * 3600;
         }
-        $dates .= '</select>';
 
         $this->context->smarty->assign(['log_dates' => $dates]);
         return $this->context->smarty->fetch($this->local_path . 'views/templates/admin/logs.tpl');
