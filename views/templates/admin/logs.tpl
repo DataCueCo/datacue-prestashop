@@ -22,5 +22,11 @@
 *  @license   https://opensource.org/licenses/MIT MIT License
 *}
 
-{$log_dates}
+<select id="datacue-logs-date-select" style="width: 150px;">
+    {foreach $log_dates as $date}
+        <option value="{$date.value|escape:'htmlall':'UTF-8'}" {$date.selected|escape:'htmlall':'UTF-8'}>
+            {$date.value|escape:'htmlall':'UTF-8'}
+        </option>
+    {/foreach}
+</select>
 <iframe id="datacue-log-frame" src="" style="width: 100%; height: 500px; border: 0.5px solid #eee; margin-top: 5px;"></iframe>
