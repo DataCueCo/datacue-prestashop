@@ -27,9 +27,9 @@
   <tr>
     <th width="100">Data Type</th>
     <th width="100">Total</th>
-    <th width="100"># of pending</th>
-    <th width="100"># of successes</th>
-    <th width="100"># of failures</th>
+    <th width="100">Pending</th>
+    <th width="100">Successful</th>
+    <th width="100">Failed</th>
   </tr>
   </thead>
   <tbody></tbody>
