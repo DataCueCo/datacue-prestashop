@@ -56,7 +56,7 @@ class DataCue extends Module
         $this->version = '1.1.7';
         $this->author = 'DataCue.Co';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = array('min' => '1.7.4.0', 'max' => '2');
+        $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
         $this->module_key = 'ab643ca3bc12cebf5cf610afb57c0de9';
 
         /**
@@ -70,8 +70,6 @@ class DataCue extends Module
         $this->description = $this->l('DataCue for PrestaShop');
 
         $this->confirmUninstall = $this->l('');
-
-        $this->ps_versions_compliancy = array('min' => '1.7.4', 'max' => _PS_VERSION_);
 
         try {
             Client::setIntegrationAndVersion('PrestaShop', $this->version);
