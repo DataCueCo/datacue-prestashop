@@ -26,7 +26,7 @@
 	<div class="col">
 		<div class="alert alert-danger" role="alert">
 			<p class="alert-text">
-				The synchronization task failed, Please contact the administrator.
+				The synchronization task failed, if this keeps happening, please contact DataCue support with a copy of this log.
 			</p>
 		</div>
 	</div>
