@@ -225,7 +225,7 @@ class Schedule
             $orderData = [];
             foreach ($job->ids as $id) {
                 $order = Order::getOrderById($id);
-                if ($order->getCustomer()->isGuest()) {
+                if (Order::isEmailGuestOrder($order)) {
                     $existing = false;
                     foreach ($guestData as $guest) {
                         if ($guest['user_id'] === $order->getCustomer()->email) {

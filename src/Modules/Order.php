@@ -46,7 +46,7 @@ class Order
         }
 
         $item = [
-            'user_id' => $order->getCustomer()->isGuest() ? $order->getCustomer()->email : $order->id_customer,
+            'user_id' => static::getUserId($order),
             'timestamp' => str_replace('+00:00', 'Z', gmdate('c', strtotime($order->date_add))),
             'order_status' => (int)$order->getCurrentState() === 6 ? 'cancelled' : 'completed',
         ];
@@ -87,6 +87,32 @@ class Order
     }
 
     /**
+     * @param \Order $order
+     * @return bool
+     */
+    public static function isEmailGuestOrder($order)
+    {
+        return $order->getCustomer()->isGuest();
+    }
+
+    /**
+     * @param \Order $order
+     * @return string
+     */
+    public static function getUserId($order)
+    {
+        if (!$order->getCustomer()->isGuest()) {
+            return '' . $order->id_customer;
+        }
+
+        if (!empty($order->getCustomer()->email)) {
+            return $order->getCustomer()->email;
+        }
+
+        return 'no-user';
+    }
+
+    /**
      * @param $id
      * @return \Order
      */
@@ -103,7 +129,7 @@ class Order
     {
         Log::info('onOrderAdd');
 
-        if ($order->getCustomer()->isGuest()) {
+        if (static::isEmailGuestOrder($order)) {
             Queue::addJob(
                 'create',
                 'guest_users',

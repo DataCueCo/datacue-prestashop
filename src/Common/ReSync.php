@@ -233,7 +233,7 @@ class ReSync
                 }
                 $item = Order::buildOrderForDataCue($order, null, true);
                 if (!is_null($item)) {
-                    if ($order->getCustomer()->isGuest()) {
+                    if (Order::isEmailGuestOrder($order)) {
                         Queue::addJob(
                             'create',
                             'guest_users',
