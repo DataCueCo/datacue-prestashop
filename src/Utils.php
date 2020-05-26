@@ -25,6 +25,8 @@
 
 namespace DataCue\PrestaShop;
 
+use Tools;
+
 class Utils
 {
     public static function isStaging()
@@ -39,5 +41,19 @@ class Utils
             isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http',
             $_SERVER['HTTP_HOST']
         );
+    }
+
+    public static function getAllValues()
+    {
+        if (static::is_1_6()) {
+            return array_merge($_GET, $_POST);
+        }
+
+        return Tools::getAllValues();
+    }
+
+    public static function is_1_6()
+    {
+        return substr(_PS_VERSION_, 0, 3) === '1.6';
     }
 }

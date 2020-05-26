@@ -29,22 +29,6 @@ if (!defined('_PS_VERSION_')) {
 
 require_once dirname(__FILE__) . '/vendor/autoload.php';
 
-use DataCue\PrestaShop\Events\BrowserEvents;
-use DataCue\PrestaShop\Modules\Product;
-use DataCue\PrestaShop\Modules\User;
-use DataCue\PrestaShop\Modules\Variant;
-use DataCue\PrestaShop\Modules\Order;
-use DataCue\PrestaShop\Modules\Category;
-use DataCue\PrestaShop\Modules\Cart;
-use DataCue\PrestaShop\Widgets\Banner;
-use DataCue\PrestaShop\Common\Schedule;
-use DataCue\PrestaShop\Common\Initializer;
-use DataCue\PrestaShop\Common\ReSync;
-use DataCue\Exceptions\UnauthorizedException;
-use DataCue\PrestaShop\Utils;
-use DataCue\PrestaShop\Widgets\Products;
-use DataCue\Client;
-
 class DataCue extends Module
 {
     protected $config_form = false;
@@ -53,10 +37,10 @@ class DataCue extends Module
     {
         $this->name = 'datacue';
         $this->tab = 'advertising_marketing';
-        $this->version = '1.1.8';
+        $this->version = '1.2.0';
         $this->author = 'DataCue.Co';
         $this->need_instance = 1;
-        $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
         $this->module_key = 'ab643ca3bc12cebf5cf610afb57c0de9';
 
         /**
@@ -72,7 +56,7 @@ class DataCue extends Module
         $this->confirmUninstall = $this->l('');
 
         try {
-            Client::setIntegrationAndVersion('PrestaShop', $this->version);
+            \DataCue\Client::setIntegrationAndVersion('PrestaShop', $this->version);
         } catch (Exception $e) {
         }
     }
@@ -116,7 +100,7 @@ class DataCue extends Module
     public function uninstall()
     {
         try {
-            (new Initializer(
+            (new \DataCue\PrestaShop\Common\Initializer(
                 Configuration::get('DATACUE_PRESTASHOP_API_KEY'),
                 Configuration::get('DATACUE_PRESTASHOP_API_SECRET')
             ))->clearClient();
@@ -158,7 +142,7 @@ class DataCue extends Module
         \Media::addJsDef([
             'syncStatusUrl' => $this->context->link->getAdminLink('AdminDataCueSync'),
             'disconnectUrl' => $this->context->link->getAdminLink('AdminDataCueDisconnect'),
-            'logUrlPrefix' => Utils::baseURL() . '/modules/datacue/',
+            'logUrlPrefix' => \DataCue\PrestaShop\Utils::baseURL() . '/modules/datacue/',
         ]);
 
         $this->context->controller->addCSS($this->_path . 'views/css/back.css', 'all');
@@ -225,7 +209,7 @@ class DataCue extends Module
 
             if (trim($newKey) !== '' && trim($newSecret) !== '' && ($apiKey !== $newKey || $apiSecret !== $newSecret)) {
                 try {
-                    (new Initializer($newKey, $newSecret))->maybeSyncData();
+                    (new \DataCue\PrestaShop\Common\Initializer($newKey, $newSecret))->maybeSyncData();
 
                     $fieldKeys = ['DATACUE_PRESTASHOP_API_KEY', 'DATACUE_PRESTASHOP_API_SECRET'];
                     foreach ($fieldKeys as $key) {
@@ -236,7 +220,7 @@ class DataCue extends Module
                             ->fetch($this->local_path . 'views/templates/admin/success.tpl');
                     $apiKey = $newKey;
                     $apiSecret = $newSecret;
-                } catch (UnauthorizedException $e) {
+                } catch (\DataCue\Exceptions\UnauthorizedException $e) {
                     $output = $output . $this->context->smarty
                             ->fetch($this->local_path . 'views/templates/admin/unauthorizedError.tpl');
                 } catch (Exception $e) {
@@ -552,124 +536,124 @@ class DataCue extends Module
      */
     public function hookHeader()
     {
-        (new BrowserEvents($this->context))->addJS();
+        (new \DataCue\PrestaShop\Events\BrowserEvents($this->context))->addJS();
     }
 
     public function hookActionObjectCustomerAddAfter($params)
     {
-        (new User())->onUserAdd($params['object']);
+        (new \DataCue\PrestaShop\Modules\User())->onUserAdd($params['object']);
     }
 
     public function hookActionObjectCustomerUpdateAfter($params)
     {
-        (new User())->onUserUpdate($params['object']);
+        (new \DataCue\PrestaShop\Modules\User())->onUserUpdate($params['object']);
     }
 
     public function hookActionObjectCustomerDeleteAfter($params)
     {
-        (new User())->onUserDelete($params['object']);
+        (new \DataCue\PrestaShop\Modules\User())->onUserDelete($params['object']);
     }
 
     public function hookActionObjectProductAddAfter($params)
     {
-        (new Product())->onProductAdd($params['object']);
+        (new \DataCue\PrestaShop\Modules\Product())->onProductAdd($params['object']);
     }
 
     public function hookActionProductUpdate($params)
     {
-        (new Product())->onProductUpdate($params['product']);
+        (new \DataCue\PrestaShop\Modules\Product())->onProductUpdate($params['product']);
     }
 
     public function hookActionUpdateQuantity($params)
     {
-        (new Product())->onProductQuantityUpdate($params['id_product'], $params['id_product_attribute']);
+        (new \DataCue\PrestaShop\Modules\Product())->onProductQuantityUpdate($params['id_product'], $params['id_product_attribute']);
     }
 
     public function hookActionObjectProductDeleteAfter($params)
     {
-        (new Product())->onProductDelete($params['object']);
+        (new \DataCue\PrestaShop\Modules\Product())->onProductDelete($params['object']);
     }
 
     public function hookActionAdminProductsControllerActivateAfter($params)
     {
-        (new Product())->onProductStatusUpdate($params['product_id']);
+        (new \DataCue\PrestaShop\Modules\Product())->onProductStatusUpdate($params['product_id']);
     }
 
     public function hookActionAdminProductsControllerDeactivateAfter($params)
     {
-        (new Product())->onProductStatusUpdate($params['product_id']);
+        (new \DataCue\PrestaShop\Modules\Product())->onProductStatusUpdate($params['product_id']);
     }
 
     public function hookActionObjectCombinationAddAfter($params)
     {
-        (new Variant())->onCombinationAdd($params['object']);
+        (new \DataCue\PrestaShop\Modules\Variant())->onCombinationAdd($params['object']);
     }
 
     public function hookActionObjectCombinationUpdateAfter($params)
     {
-        (new Variant())->onCombinationUpdate($params['object']);
+        (new \DataCue\PrestaShop\Modules\Variant())->onCombinationUpdate($params['object']);
     }
 
     public function hookActionObjectCombinationDeleteAfter($params)
     {
-        (new Variant())->onCombinationDelete($params['object']);
+        (new \DataCue\PrestaShop\Modules\Variant())->onCombinationDelete($params['object']);
     }
 
     public function hookActionObjectCategoryAddAfter($params)
     {
-        (new Category())->onCategoryAdd($params['object']);
+        (new \DataCue\PrestaShop\Modules\Category())->onCategoryAdd($params['object']);
     }
 
     public function hookActionObjectCategoryUpdateAfter($params)
     {
-        (new Category())->onCategoryUpdate($params['object']);
+        (new \DataCue\PrestaShop\Modules\Category())->onCategoryUpdate($params['object']);
     }
 
     public function hookActionObjectCategoryDeleteAfter($params)
     {
-        (new Category())->onCategoryDelete($params['object']);
+        (new \DataCue\PrestaShop\Modules\Category())->onCategoryDelete($params['object']);
     }
 
     public function hookActionValidateOrder($params)
     {
-        (new Order())->onOrderAdd($params['order'], $params['currency']);
+        (new \DataCue\PrestaShop\Modules\Order())->onOrderAdd($params['order'], $params['currency']);
     }
 
     public function hookActionObjectOrderDeleteAfter($params)
     {
-        (new Order())->onOrderDelete($params['object']);
+        (new \DataCue\PrestaShop\Modules\Order())->onOrderDelete($params['object']);
     }
 
     public function hookActionOrderStatusPostUpdate($params)
     {
-        (new Order())->onOrderStatusUpdate($params['id_order'], $params['newOrderStatus']);
+        (new \DataCue\PrestaShop\Modules\Order())->onOrderStatusUpdate($params['id_order'], $params['newOrderStatus']);
     }
 
     public function hookActionCartSave()
     {
-        (new Cart())->onCartSave();
+        (new \DataCue\PrestaShop\Modules\Cart())->onCartSave();
     }
 
     public function hookDisplayFooterAfter()
     {
-        (new ReSync())->maybeScheduleCron();
-        (new Schedule())->maybeScheduleCron();
+        (new \DataCue\PrestaShop\Common\ReSync())->maybeScheduleCron();
+        (new \DataCue\PrestaShop\Common\Schedule())->maybeScheduleCron();
     }
 
     public function hookDisplayBackOfficeFooter()
     {
-        (new ReSync())->maybeScheduleCron();
-        (new Schedule())->maybeScheduleCron();
+        (new \DataCue\PrestaShop\Common\ReSync())->maybeScheduleCron();
+        (new \DataCue\PrestaShop\Common\Schedule())->maybeScheduleCron();
     }
 
     public function hookDisplayNavFullWidth()
     {
-        (new Banner())->onDisplayNavFullWidth();
-        (new Products())->onDisplayNavFullWidth();
+        (new \DataCue\PrestaShop\Widgets\Banner())->onDisplayNavFullWidth();
+        (new \DataCue\PrestaShop\Widgets\Products())->onDisplayNavFullWidth();
     }
 
     public function hookDisplayFooterProduct()
     {
-        (new Products())->onDisplayFooterProduct();
+        (new \DataCue\PrestaShop\Widgets\Products())->onDisplayFooterProduct();
     }
 }

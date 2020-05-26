@@ -25,12 +25,14 @@
 
 namespace DataCue\PrestaShop\Widgets;
 
+use DataCue\PrestaShop\Utils;
+
 class Banner
 {
     public function onDisplayNavFullWidth()
     {
         $show = \Configuration::get('DATACUE_PRESTASHOP_SHOW_BANNER', null);
-        if ((int)$show === 1 && \Tools::getAllValues()['controller'] === 'index') {
+        if ((int)$show === 1 && Utils::getAllValues()['controller'] === 'index') {
             $image = \Configuration::get('DATACUE_PRESTASHOP_BANNER_IMAGE', null);
             $link = \Configuration::get('DATACUE_PRESTASHOP_BANNER_LINK', null);
             echo <<<EOT

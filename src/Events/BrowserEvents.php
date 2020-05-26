@@ -28,7 +28,6 @@ namespace DataCue\PrestaShop\Events;
 use DataCue\PrestaShop\Modules\Cart;
 use DataCue\PrestaShop\Modules\Product;
 use DataCue\PrestaShop\Modules\Variant;
-use Tools;
 use Media;
 use Configuration;
 use DataCue\PrestaShop\Utils;
@@ -57,7 +56,7 @@ class BrowserEvents
     public function __construct($context)
     {
         $this->context = $context;
-        $this->values = Tools::getAllValues();
+        $this->values = Utils::getAllValues();
         $this->apiKey = Configuration::get('DATACUE_PRESTASHOP_API_KEY', null);
     }
 
@@ -239,11 +238,15 @@ class BrowserEvents
             'datacueCartLink' => Utils::baseURL() . '/index.php?controller=cart&action=show',
         ]);
         $this->addPublicJS();
-        $this->context->controller->registerJavascript(
-            'datacue-checkout-page',
-            'modules/datacue_prestashop/views/js/checkout_page.js',
-            ['position' => 'bottom', 'priority' => 300]
-        );
+        if (Utils::is_1_6()) {
+            $this->context->controller->addJS('/modules/datacue/views/js/checkout_page.js');
+        } else {
+            $this->context->controller->registerJavascript(
+                'datacue-checkout-page',
+                'modules/datacue/views/js/checkout_page.js',
+                ['position' => 'bottom', 'priority' => 300]
+            );
+        }
     }
 
     /**
@@ -308,15 +311,20 @@ class BrowserEvents
      */
     private function addPublicJS()
     {
-        $this->context->controller->registerJavascript(
-            'datacue',
-            'https://cdn.datacue.co/js/datacue.js',
-            ['server' => 'remote', 'position' => 'bottom', 'priority' => 200]
-        );
-        $this->context->controller->registerJavascript(
-            'datacue-storefront',
-            'https://cdn.datacue.co/js/datacue-storefront.js',
-            ['server' => 'remote', 'position' => 'bottom', 'priority' => 201]
-        );
+        if (Utils::is_1_6()) {
+            $this->context->controller->addJS('https://cdn.datacue.co/js/datacue.js');
+            $this->context->controller->addJS('https://cdn.datacue.co/js/datacue-storefront.js');
+        } else {
+            $this->context->controller->registerJavascript(
+                'datacue',
+                'https://cdn.datacue.co/js/datacue.js',
+                ['server' => 'remote', 'position' => 'bottom', 'priority' => 200]
+            );
+            $this->context->controller->registerJavascript(
+                'datacue-storefront',
+                'https://cdn.datacue.co/js/datacue-storefront.js',
+                ['server' => 'remote', 'position' => 'bottom', 'priority' => 201]
+            );
+        }
     }
 }

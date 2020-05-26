@@ -25,13 +25,15 @@
 
 namespace DataCue\PrestaShop\Widgets;
 
+use DataCue\PrestaShop\Utils;
+
 class Products
 {
     public function onDisplayNavFullWidth()
     {
         $show = \Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_HOME_PAGE', true);
         $type = \Configuration::get('DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_HOME_PAGE', true);
-        if ((int)$show === 1 && \Tools::getAllValues()['controller'] === 'index') {
+        if ((int)$show === 1 && Utils::getAllValues()['controller'] === 'index') {
             if ($type === 'all' || empty($type)) {
                 echo '<div class="widget"><div data-dc-products></div></div>';
             } else {
@@ -44,7 +46,7 @@ class Products
     {
         $show = \Configuration::get('DATACUE_PRESTASHOP_SHOW_PRODUCTS_IN_PRODUCT_PAGE', true);
         $type = \Configuration::get('DATACUE_PRESTASHOP_PRODUCTS_TYPE_IN_PRODUCT_PAGE', true);
-        if ((int)$show === 1 && \Tools::getAllValues()['controller'] === 'product') {
+        if ((int)$show === 1 && Utils::getAllValues()['controller'] === 'product') {
             if ($type === 'all' || empty($type)) {
                 echo '<div class="widget"><div data-dc-products></div></div>';
             } else {
