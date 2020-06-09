@@ -238,7 +238,7 @@ class BrowserEvents
             'datacueCartLink' => Utils::baseURL() . '/index.php?controller=cart&action=show',
         ]);
         $this->addPublicJS();
-        if (Utils::is_1_6()) {
+        if (Utils::is16()) {
             $this->context->controller->addJS('/modules/datacue/views/js/checkout_page.js');
         } else {
             $this->context->controller->registerJavascript(
@@ -311,7 +311,7 @@ class BrowserEvents
      */
     private function addPublicJS()
     {
-        if (Utils::is_1_6()) {
+        if (Utils::is16()) {
             $this->context->controller->addJS('https://cdn.datacue.co/js/datacue.js');
             $this->context->controller->addJS('https://cdn.datacue.co/js/datacue-storefront.js');
         } else {

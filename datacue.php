@@ -566,7 +566,10 @@ class DataCue extends Module
 
     public function hookActionUpdateQuantity($params)
     {
-        (new \DataCue\PrestaShop\Modules\Product())->onProductQuantityUpdate($params['id_product'], $params['id_product_attribute']);
+        (new \DataCue\PrestaShop\Modules\Product())->onProductQuantityUpdate(
+            $params['id_product'],
+            $params['id_product_attribute']
+        );
     }
 
     public function hookActionObjectProductDeleteAfter($params)

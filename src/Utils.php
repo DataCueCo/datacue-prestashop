@@ -45,15 +45,15 @@ class Utils
 
     public static function getAllValues()
     {
-        if (static::is_1_6()) {
+        if (static::is16()) {
             return array_merge($_GET, $_POST);
         }
 
         return Tools::getAllValues();
     }
 
-    public static function is_1_6()
+    public static function is16()
     {
-        return substr(_PS_VERSION_, 0, 3) === '1.6';
+        return Tools::substr(_PS_VERSION_, 0, 3) === '1.6';
     }
 }
