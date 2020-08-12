@@ -133,6 +133,11 @@ class Product
                     'item' => static::buildProductForDataCue($product, true),
                 ]
             );
+        } else {
+            foreach ($combinations as $item) {
+                $variantId = $item['id'];
+                (new Variant())->onCombinationUpdate(Variant::getVariantById($variantId));
+            }
         }
     }
 

@@ -26,6 +26,7 @@
 namespace DataCue\PrestaShop\Common;
 
 use Configuration;
+use DataCue\Core\Response;
 use DataCue\PrestaShop\Modules\Category;
 use DataCue\PrestaShop\Modules\Order;
 use DataCue\PrestaShop\Modules\Product;
@@ -154,9 +155,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->products->batchUpdate($items);
                     Log::info('update products response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // delete products
@@ -170,9 +169,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->products->batchDelete($items);
                     Log::info('delete products response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // update variants
@@ -183,9 +180,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->products->batchUpdate($items);
                     Log::info('update variants response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // delete variants
@@ -199,9 +194,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->products->batchDelete($items);
                     Log::info('delete variants response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // update categories
@@ -212,9 +205,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->categories->batchUpdate($items);
                     Log::info('update categories response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // delete categories
@@ -225,9 +216,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->categories->batchDelete($items);
                     Log::info('delete categories response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // update users
@@ -238,9 +227,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->users->batchUpdate($items);
                     Log::info('update users response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // delete users
@@ -251,9 +238,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->users->batchDelete($items);
                     Log::info('delete users response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // update guest_users
@@ -264,9 +249,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->users->batchUpdate($items);
                     Log::info('update guest users response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // create orders
@@ -277,9 +260,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->orders->batchCreate($items);
                     Log::info('update orders response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // cancel orders
@@ -290,9 +271,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->orders->batchCancel($items);
                     Log::info('cancel orders response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // delete orders
@@ -303,9 +282,7 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->orders->batchDelete($items);
                     Log::info('delete orders response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
 
                 // events
@@ -319,14 +296,11 @@ class Schedule
                     }, $jobs);
                     $res = $this->client->events->batchTrack($items);
                     Log::info('track events response: ' . $res);
-                    Queue::updateMultiJobsStatus(array_map(function ($job) {
-                        return $job['id_datacue_queue'];
-                    }, $jobs), static::STATUS_SUCCESS);
+                    $this->updateMultiJobsStatus($res, $jobs);
                 }
             }
         } catch (Exception $e) {
             Log::info($e->getMessage());
-            Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_FAILURE);
         }
     }
 
@@ -413,6 +387,19 @@ class Schedule
             }
             $res = $this->client->categories->batchCreate($data);
             Log::info('batch create categories response: ' . $res);
+        }
+    }
+
+    private function updateMultiJobsStatus(Response $res, $jobs)
+    {
+        $jobIds = array_map(function ($job) {
+            return $job['id_datacue_queue'];
+        }, $jobs);
+
+        if ($res->getHttpCode() === 200) {
+            Queue::updateMultiJobsStatus($jobIds, static::STATUS_SUCCESS);
+        } else {
+            Queue::updateMultiJobsStatus($jobIds, static::STATUS_FAILURE);
         }
     }
 

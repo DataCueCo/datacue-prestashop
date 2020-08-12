@@ -35,7 +35,7 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'datacue_queue` (
     `executed_at` datetime DEFAULT NULL,
     `created_at` datetime NOT NULL,
     PRIMARY KEY  (`id_datacue_queue`),
-    UNIQUE KEY `unique_job` (`action`, `model`, `model_id`, `status`)
+    UNIQUE KEY `unique_job` (`action`, `model`, `model_id`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
 
 foreach ($sql as $query) {
