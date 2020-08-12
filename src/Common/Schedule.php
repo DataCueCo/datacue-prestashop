@@ -1,4 +1,5 @@
 <?php
+
 /**
  * MIT License
  * Copyright (c) 2019 DataCue
@@ -396,11 +397,12 @@ class Schedule
             return $job['id_datacue_queue'];
         }, $jobs);
 
-        if ($res->getHttpCode() === 200) {
+        if ($res->getHttpCode() >= 200 && $res->getHttpCode() < 300) {
             Queue::updateMultiJobsStatus($jobIds, static::STATUS_SUCCESS);
+        } elseif ($res->getHttpCode() >= 500) { //retry due to temporary server issue
+            Queue::updateMultiJobsStatus($jobIds, static::STATUS_NONE);
         } else {
             Queue::updateMultiJobsStatus($jobIds, static::STATUS_FAILURE);
         }
     }
-
 }
