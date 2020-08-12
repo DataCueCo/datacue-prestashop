@@ -56,7 +56,7 @@ class Queue
 
         return \Db::getInstance()->execute("
 			INSERT INTO `" . _DB_PREFIX_ . "datacue_queue` (`action`, `model`, `model_id`, `job`, `status`, `created_at`) 
-			VALUES ('$action', '$model', $modelId, '$job', 0, NOW()) ON DUPLICATE KEY UPDATE");
+			VALUES ('$action', '$model', $modelId, '$job', 0, NOW()) ON DUPLICATE KEY UPDATE `job`='$job'");
     }
 
     public static function addJobWithoutModelId($action, $model, $job)
@@ -67,7 +67,7 @@ class Queue
 
         return \Db::getInstance()->execute("
 			INSERT INTO `" . _DB_PREFIX_ . "datacue_queue` (`action`, `model`, `job`, `status`, `created_at`) 
-			VALUES ('$action', '$model', '$job', 0, NOW()) ON DUPLICATE KEY UPDATE");
+			VALUES ('$action', '$model', '$job', 0, NOW()) ON DUPLICATE KEY UPDATE `job`='$job'");
     }
 
     public static function updateJob($id, $job)
