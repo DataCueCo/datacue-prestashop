@@ -69,10 +69,11 @@ class User
         }
         Log::info('onUserAdd');
         Queue::addJob(
-            'create',
+            'update',
             'users',
             $customer->id,
             [
+                'userId' => $customer->id,
                 'item' => static::buildUserForDataCue($customer, true)
             ]
         );
@@ -84,25 +85,15 @@ class User
     public function onUserUpdate($customer)
     {
         Log::info('onUserUpdate');
-        if ($job = Queue::getAliveJob('update', 'users', $customer->id)) {
-            Queue::updateJob(
-                $job['id_datacue_queue'],
-                [
-                    'userId' => $customer->id,
-                    'item' => static::buildUserForDataCue($customer, false),
-                ]
-            );
-        } else {
-            Queue::addJob(
-                'update',
-                'users',
-                $customer->id,
-                [
-                    'userId' => $customer->id,
-                    'item' => static::buildUserForDataCue($customer, false)
-                ]
-            );
-        }
+        Queue::addJob(
+            'update',
+            'users',
+            $customer->id,
+            [
+                'userId' => $customer->id,
+                'item' => static::buildUserForDataCue($customer, true)
+            ]
+        );
     }
 
     /**

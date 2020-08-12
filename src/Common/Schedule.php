@@ -56,7 +56,7 @@ class Schedule
     /**
      * Process job count each time.
      */
-    const JOBS_EACH_TIME = 3;
+    const JOBS_EACH_TIME = 1;
 
     /**
      * Task status after initial
@@ -128,41 +128,201 @@ class Schedule
         try {
             for ($i = 0; $i < static::JOBS_EACH_TIME; $i++) {
                 Log::info('executeCron');
-                $job = Queue::getNextAliveJob();
-                if (!$job) {
-                    return;
-                }
-                
-                if ($job['action'] === 'init' || $job['action'] === 'reinit') {
+
+                // handle all kinds of jobs
+                // first, find if there's `init` or `reinit` job
+                // if found, just do the job and skip other jobs at this time.
+                $job = Queue::getNextAliveJobByAction('init');
+                if (!empty($job)) {
                     $this->doInit($job['model'], $job['job'], $job['action']);
-                } else {
-                    switch ($job['model']) {
-                        case 'products':
-                            $this->doProductsJob($job['action'], $job['job']);
-                            break;
-                        case 'variants':
-                            $this->doVariantsJob($job['action'], $job['job']);
-                            break;
-                        case 'users':
-                            $this->doUsersJob($job['action'], $job['job']);
-                            break;
-                        case 'guest_users':
-                            $this->doUsersJob($job['action'], $job['job']);
-                            break;
-                        case 'orders':
-                            $this->doOrdersJob($job['action'], $job['job']);
-                            break;
-                        case 'categories':
-                            $this->doCategoriesJob($job['action'], $job['job']);
-                            break;
-                        case 'events':
-                            $this->doEventJob($job['action'], $job['job']);
-                            break;
-                        default:
-                            break;
-                    }
+                    Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_SUCCESS);
+                    continue;
                 }
-                Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_SUCCESS);
+
+                $job = Queue::getNextAliveJobByAction('reinit');
+                if (!empty($job)) {
+                    $this->doInit($job['model'], $job['job'], $job['action']);
+                    Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_SUCCESS);
+                    continue;
+                }
+
+                // update products
+                $jobs = Queue::getAliveJobsByModelAndAction('products', 'update');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return $job['job']->item;
+                    }, $jobs);
+                    $res = $this->client->products->batchUpdate($items);
+                    Log::info('update products response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // delete products
+                $jobs = Queue::getAliveJobsByModelAndAction('products', 'delete');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return [
+                            'product_id' => $job['job']->productId,
+                            'variant_id' => $job['job']->variantId,
+                        ];
+                    }, $jobs);
+                    $res = $this->client->products->batchDelete($items);
+                    Log::info('delete products response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // update variants
+                $jobs = Queue::getAliveJobsByModelAndAction('variants', 'update');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return $job['job']->item;
+                    }, $jobs);
+                    $res = $this->client->products->batchUpdate($items);
+                    Log::info('update variants response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // delete variants
+                $jobs = Queue::getAliveJobsByModelAndAction('variants', 'delete');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return [
+                            'product_id' => $job['job']->productId,
+                            'variant_id' => $job['job']->variantId,
+                        ];
+                    }, $jobs);
+                    $res = $this->client->products->batchDelete($items);
+                    Log::info('delete variants response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // update categories
+                $jobs = Queue::getAliveJobsByModelAndAction('categories', 'update');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return $job['job']->item;
+                    }, $jobs);
+                    $res = $this->client->categories->batchUpdate($items);
+                    Log::info('update categories response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // delete categories
+                $jobs = Queue::getAliveJobsByModelAndAction('categories', 'delete');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return $job['job']->categoryId;
+                    }, $jobs);
+                    $res = $this->client->categories->batchDelete($items);
+                    Log::info('delete categories response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // update users
+                $jobs = Queue::getAliveJobsByModelAndAction('users', 'update');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return $job['job']->item;
+                    }, $jobs);
+                    $res = $this->client->users->batchUpdate($items);
+                    Log::info('update users response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // delete users
+                $jobs = Queue::getAliveJobsByModelAndAction('users', 'delete');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return $job['job']->userId;
+                    }, $jobs);
+                    $res = $this->client->users->batchDelete($items);
+                    Log::info('delete users response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // update guest_users
+                $jobs = Queue::getAliveJobsByModelAndAction('guest_users', 'update');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return $job['job']->item;
+                    }, $jobs);
+                    $res = $this->client->users->batchUpdate($items);
+                    Log::info('update guest users response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // create orders
+                $jobs = Queue::getAliveJobsByModelAndAction('orders', 'create');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return $job['job']->item;
+                    }, $jobs);
+                    $res = $this->client->orders->batchCreate($items);
+                    Log::info('update orders response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // cancel orders
+                $jobs = Queue::getAliveJobsByModelAndAction('orders', 'cancel');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return $job['job']->orderId;
+                    }, $jobs);
+                    $res = $this->client->orders->batchCancel($items);
+                    Log::info('cancel orders response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // delete orders
+                $jobs = Queue::getAliveJobsByModelAndAction('orders', 'delete');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return $job['job']->orderId;
+                    }, $jobs);
+                    $res = $this->client->orders->batchDelete($items);
+                    Log::info('delete orders response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
+
+                // events
+                $jobs = Queue::getAliveJobsByModelAndAction('events', 'track');
+                if (!empty($jobs) && count($jobs) > 0) {
+                    $items = array_map(function ($job) {
+                        return [
+                            'user' => $job['job']->user,
+                            'event' => $job['job']->event,
+                        ];
+                    }, $jobs);
+                    $res = $this->client->events->batchTrack($items);
+                    Log::info('track events response: ' . $res);
+                    Queue::updateMultiJobsStatus(array_map(function ($job) {
+                        return $job['id_datacue_queue'];
+                    }, $jobs), static::STATUS_SUCCESS);
+                }
             }
         } catch (Exception $e) {
             Log::info($e->getMessage());
@@ -256,187 +416,4 @@ class Schedule
         }
     }
 
-    /**
-     * @param $action
-     * @param $job
-     * @throws \DataCue\Exceptions\ClientException
-     * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
-     * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
-     * @throws \DataCue\Exceptions\InvalidEnvironmentException
-     * @throws \DataCue\Exceptions\NetworkErrorException
-     * @throws \DataCue\Exceptions\RetryCountReachedException
-     * @throws \DataCue\Exceptions\UnauthorizedException
-     */
-    private function doProductsJob($action, $job)
-    {
-        switch ($action) {
-            case 'create':
-                $res = $this->client->products->create($job->item);
-                Log::info('create variant response: ' . $res);
-                break;
-            case 'update':
-                $res = $this->client->products->update($job->productId, $job->variantId, $job->item);
-                Log::info('update product response: ' . $res);
-                break;
-            case 'delete':
-                if ($job->variantId) {
-                    $res = $this->client->products->delete($job->productId, $job->variantId);
-                    Log::info('delete variant response: ' . $res);
-                } else {
-                    $res = $this->client->products->delete($job->productId);
-                    Log::info('delete product response: ' . $res);
-                }
-                break;
-            case 'delete_all':
-                $res = $this->client->products->deleteAll();
-                Log::info('delete all products response: ' . $res);
-                break;
-            default:
-                break;
-        }
-    }
-
-    /**
-     * @param $action
-     * @param $job
-     * @throws \DataCue\Exceptions\ClientException
-     * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
-     * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
-     * @throws \DataCue\Exceptions\InvalidEnvironmentException
-     * @throws \DataCue\Exceptions\NetworkErrorException
-     * @throws \DataCue\Exceptions\RetryCountReachedException
-     * @throws \DataCue\Exceptions\UnauthorizedException
-     */
-    private function doVariantsJob($action, $job)
-    {
-        $this->doProductsJob($action, $job);
-    }
-
-    /**
-     * @param $action
-     * @param $job
-     * @throws \DataCue\Exceptions\ClientException
-     * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
-     * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
-     * @throws \DataCue\Exceptions\InvalidEnvironmentException
-     * @throws \DataCue\Exceptions\NetworkErrorException
-     * @throws \DataCue\Exceptions\RetryCountReachedException
-     * @throws \DataCue\Exceptions\UnauthorizedException
-     */
-    private function doUsersJob($action, $job)
-    {
-        switch ($action) {
-            case 'create':
-                $res = $this->client->users->create($job->item);
-                Log::info('create user response: ' . $res);
-                break;
-            case 'update':
-                $res = $this->client->users->update($job->userId, $job->item);
-                Log::info('update user response: ' . $res);
-                break;
-            case 'delete':
-                $res = $this->client->users->delete($job->userId);
-                Log::info('delete user response: ' . $res);
-                break;
-            case 'delete_all':
-                $res = $this->client->users->deleteAll();
-                Log::info('delete all users response: ' . $res);
-                break;
-            default:
-                break;
-        }
-    }
-
-    /**
-     * @param $action
-     * @param $job
-     * @throws \DataCue\Exceptions\ClientException
-     * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
-     * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
-     * @throws \DataCue\Exceptions\InvalidEnvironmentException
-     * @throws \DataCue\Exceptions\NetworkErrorException
-     * @throws \DataCue\Exceptions\RetryCountReachedException
-     * @throws \DataCue\Exceptions\UnauthorizedException
-     */
-    private function doOrdersJob($action, $job)
-    {
-        switch ($action) {
-            case 'create':
-                $res = $this->client->orders->create($job->item);
-                Log::info('create order response: ', $res);
-                break;
-            case 'cancel':
-                $res = $this->client->orders->cancel($job->orderId);
-                Log::info('cancel order response: ', $res);
-                break;
-            case 'delete':
-                $res = $this->client->orders->delete($job->orderId);
-                Log::info('delete order response: ', $res);
-                break;
-            case 'delete_all':
-                $res = $this->client->orders->deleteAll();
-                Log::info('delete all orders response: ' . $res);
-                break;
-            default:
-                break;
-        }
-    }
-
-    /**
-     * @param $action
-     * @param $job
-     * @throws \DataCue\Exceptions\ClientException
-     * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
-     * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
-     * @throws \DataCue\Exceptions\InvalidEnvironmentException
-     * @throws \DataCue\Exceptions\NetworkErrorException
-     * @throws \DataCue\Exceptions\RetryCountReachedException
-     * @throws \DataCue\Exceptions\UnauthorizedException
-     */
-    private function doCategoriesJob($action, $job)
-    {
-        switch ($action) {
-            case 'create':
-                $res = $this->client->categories->create($job->item);
-                Log::info('create category response: ' . $res);
-                break;
-            case 'update':
-                $res = $this->client->categories->update($job->categoryId, $job->item);
-                Log::info('update category response: ' . $res);
-                break;
-            case 'delete':
-                $res = $this->client->categories->delete($job->categoryId);
-                Log::info('delete category response: ' . $res);
-                break;
-            case 'delete_all':
-                $res = $this->client->categories->deleteAll();
-                Log::info('delete all categories response: ' . $res);
-                break;
-            default:
-                break;
-        }
-    }
-
-    /**
-     * @param $action
-     * @param $job
-     * @throws \DataCue\Exceptions\ClientException
-     * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
-     * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
-     * @throws \DataCue\Exceptions\InvalidEnvironmentException
-     * @throws \DataCue\Exceptions\NetworkErrorException
-     * @throws \DataCue\Exceptions\RetryCountReachedException
-     * @throws \DataCue\Exceptions\UnauthorizedException
-     */
-    private function doEventJob($action, $job)
-    {
-        switch ($action) {
-            case 'track':
-                $res = $this->client->events->track($job->user, $job->event);
-                Log::info('track event response: ', $res);
-                break;
-            default:
-                break;
-        }
-    }
 }

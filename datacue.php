@@ -37,7 +37,7 @@ class DataCue extends Module
     {
         $this->name = 'datacue';
         $this->tab = 'advertising_marketing';
-        $this->version = '1.2.0';
+        $this->version = '1.3.0';
         $this->author = 'DataCue.Co';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);

@@ -162,7 +162,7 @@ class ReSync
                     continue;
                 }
                 Queue::addJob(
-                    'create',
+                    'update',
                     'categories',
                     $categoryId,
                     [
@@ -197,7 +197,7 @@ class ReSync
                         $combination = Variant::getVariantById($variantId);
                         $item = Variant::buildVariantForDataCue($combination, $product, true);
                         Queue::addJob(
-                            'create',
+                            'update',
                             'variants',
                             $variantId,
                             ['productId' => $productId, 'variantId' => $variantId, 'item' => $item]
@@ -206,7 +206,7 @@ class ReSync
                 } else {
                     $item = Product::buildProductForDataCue($product, true);
                     Queue::addJob(
-                        'create',
+                        'update',
                         'products',
                         $productId,
                         ['productId' => $productId, 'variantId' => 'no-variants', 'item' => $item]
@@ -235,13 +235,13 @@ class ReSync
                 if (!is_null($item)) {
                     if (Order::isEmailGuestOrder($order)) {
                         Queue::addJob(
-                            'create',
+                            'update',
                             'guest_users',
                             $orderId,
                             ['item' => Order::buildGuestUserForDataCue($order)]
                         );
                     }
-                    Queue::addJob('create', 'orders', $orderId, ['item' => $item]);
+                    Queue::addJob('update', 'orders', $orderId, ['item' => $item]);
                 }
             }
         }

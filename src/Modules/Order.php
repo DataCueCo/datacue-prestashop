@@ -131,10 +131,11 @@ class Order
 
         if (static::isEmailGuestOrder($order)) {
             Queue::addJob(
-                'create',
+                'update',
                 'guest_users',
                 $order->id,
                 [
+                    'orderId' => $order->id,
                     'item' => static::buildGuestUserForDataCue($order),
                 ]
             );
@@ -144,6 +145,7 @@ class Order
             'orders',
             $order->id,
             [
+                'orderId' => $order->id,
                 'item' => static::buildOrderForDataCue($order, $currency, true),
             ]
         );

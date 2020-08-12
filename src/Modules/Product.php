@@ -103,7 +103,7 @@ class Product
     {
         Log::info('onProductAdd');
         Queue::addJob(
-            'create',
+            'update',
             'products',
             $product->id,
             [
@@ -130,7 +130,7 @@ class Product
                 [
                     'productId' => $product->id,
                     'variantId' => 'no-variants',
-                    'item' => static::buildProductForDataCue($product, false),
+                    'item' => static::buildProductForDataCue($product, true),
                 ]
             );
         }
@@ -155,7 +155,7 @@ class Product
                     [
                         'productId' => $productId,
                         'variantId' => 'no-variants',
-                        'item' => static::buildProductForDataCue($product, false),
+                        'item' => static::buildProductForDataCue($product, true),
                     ]
                 );
             }
@@ -180,7 +180,7 @@ class Product
                 [
                     'productId' => $product->id,
                     'variantId' => $combination->id,
-                    'item' => Variant::buildVariantForDataCue($combination, $product, false),
+                    'item' => Variant::buildVariantForDataCue($combination, $product, true),
                 ]
             );
         }

@@ -141,7 +141,7 @@ class Variant
         }
 
         Queue::addJob(
-            'create',
+            'update',
             'variants',
             $combination->id,
             [
@@ -171,7 +171,7 @@ class Variant
             [
                 'productId' => $product->id,
                 'variantId' => $combination->id,
-                'item' => static::buildVariantForDataCue($combination, $product, false),
+                'item' => static::buildVariantForDataCue($combination, $product, true),
             ]
         );
     }
@@ -197,7 +197,7 @@ class Variant
         if (count($combinations) === 0 && !empty($product->id)) {
             Log::info('onProductAdd after all combinations deleted');
             Queue::addJob(
-                'create',
+                'update',
                 'products',
                 $product->id,
                 [

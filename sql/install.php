@@ -29,12 +29,13 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'datacue_queue` (
     `id_datacue_queue` int(11) NOT NULL AUTO_INCREMENT,
     `action` varchar(32) NOT NULL,
     `model` varchar(32) NOT NULL,
-    `model_id` int(11) DEFAULT NULL,
+    `model_id` int(11) NOT NULL DEFAULT 0,
     `job` mediumtext NOT NULL,
     `status` int(11) NOT NULL DEFAULT 0,
     `executed_at` datetime DEFAULT NULL,
     `created_at` datetime NOT NULL,
-    PRIMARY KEY  (`id_datacue_queue`)
+    PRIMARY KEY  (`id_datacue_queue`),
+    UNIQUE KEY `unique_job` (`action`, `model`, `model_id`, `status`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
 
 foreach ($sql as $query) {

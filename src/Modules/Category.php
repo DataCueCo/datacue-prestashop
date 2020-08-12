@@ -79,10 +79,11 @@ class Category
         Log::info('onCategoryAdd');
 
         Queue::addJob(
-            'create',
+            'update',
             'categories',
             $category->id,
             [
+                'categoryId' => $category->id,
                 'item' => static::buildCategoryForDataCue($category, true),
             ]
         );
@@ -101,7 +102,7 @@ class Category
             $category->id,
             [
                 'categoryId' => $category->id,
-                'item' => static::buildCategoryForDataCue($category, false),
+                'item' => static::buildCategoryForDataCue($category, true),
             ]
         );
     }
