@@ -99,9 +99,6 @@
   text-align: right;
 }
 
-.hidden {
-  display: none;
-}
-.active {
-  display: block;
+table {
+  margin-bottom: 2rem;
 }

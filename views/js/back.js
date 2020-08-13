@@ -47,13 +47,6 @@ function getSyncStatus() {
       html += "</tr>";
     });
     $("#datacue-sync-status-table tbody").html(html);
-    if (isInit) {
-      $(".datacue-sync-initial-sync").removeClass("hidden").addClass("active");
-      $(".datacue-sync-ongoing-sync").removeClass("active").addClass("hidden");
-    } else {
-      $(".datacue-sync-initial-sync").removeClass("active").addClass("hidden");
-      $(".datacue-sync-ongoing-sync").removeClass("hidden").addClass("active");
-    }
   });
 }
 
