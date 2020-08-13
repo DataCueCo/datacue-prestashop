@@ -1,4 +1,5 @@
 <?php
+
 /**
  * MIT License
  * Copyright (c) 2019 DataCue
@@ -85,6 +86,13 @@ class User
     public function onUserUpdate($customer)
     {
         Log::info('onUserUpdate');
+        try {
+            if ($customer->deleted) {
+                (new User())->onUserDelete($customer);
+                return;
+            }
+        } catch (\Exception $e) {
+        }
         Queue::addJob(
             'update',
             'users',
