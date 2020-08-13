@@ -136,15 +136,23 @@ class Schedule
                 // if found, just do the job and skip other jobs at this time.
                 $job = Queue::getNextAliveJobByAction('init');
                 if (!empty($job)) {
-                    $this->doInit($job['model'], $job['job'], $job['action']);
-                    Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_SUCCESS);
+                    try {
+                        $res = $this->doInit($job['model'], $job['job'], $job['action']);
+                        $this->updateMultiJobsStatus($res, [$job]);
+                    } catch (Exception $e) {
+                        Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_FAILURE);
+                    }
                     continue;
                 }
 
                 $job = Queue::getNextAliveJobByAction('reinit');
                 if (!empty($job)) {
-                    $this->doInit($job['model'], $job['job'], $job['action']);
-                    Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_SUCCESS);
+                    try {
+                        $res = $this->doInit($job['model'], $job['job'], $job['action']);
+                        $this->updateMultiJobsStatus($res, [$job]);
+                    } catch (Exception $e) {
+                        Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_FAILURE);
+                    }
                     continue;
                 }
 
@@ -309,6 +317,7 @@ class Schedule
      * @param $model
      * @param $job
      * @param $action
+     * @return false|Response
      * @throws \DataCue\Exceptions\ClientException
      * @throws \DataCue\Exceptions\ExceedBodySizeLimitationException
      * @throws \DataCue\Exceptions\ExceedListDataSizeLimitationException
@@ -338,6 +347,7 @@ class Schedule
             }
             $res = $this->client->products->batchCreate($items);
             Log::info('batch create products response: ' . $res);
+            return $res;
         } elseif ($model === 'variants') {
             $items = [];
             foreach ($job->ids as $id) {
@@ -348,6 +358,7 @@ class Schedule
             }
             $res = $this->client->products->batchCreate($items);
             Log::info('batch create variants response: ' . $res);
+            return $res;
         } elseif ($model === 'users') {
             $res = $this->client->users->batchCreate(
                 array_map(function ($id) {
@@ -355,6 +366,7 @@ class Schedule
                 }, $job->ids)
             );
             Log::info('batch create users response: ' . $res);
+            return $res;
         } elseif ($model === 'orders') {
             $guestData = [];
             $orderData = [];
@@ -380,6 +392,7 @@ class Schedule
             }
             $res = $this->client->orders->batchCreate($orderData);
             Log::info('batch create orders response: ' . $res);
+            return $res;
         } elseif ($model === 'categories') {
             $data = [];
             foreach ($job->ids as $id) {
@@ -388,6 +401,7 @@ class Schedule
             }
             $res = $this->client->categories->batchCreate($data);
             Log::info('batch create categories response: ' . $res);
+            return $res;
         }
     }
 

@@ -120,16 +120,18 @@ class Initializer
             return $item['id_product'];
         }, $products);
 
-        if ($type === 'init') {
-            $res = $this->client->overview->products();
-            $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
-            $productIdsList = array_chunk(array_diff($productIds, $existingIds), static::CHUNK_SIZE);
-        } else {
-            $productIdsList = array_chunk($productIds, static::CHUNK_SIZE);
-        }
+        if (count($productIds) > 0) {
+            if ($type === 'init') {
+                $res = $this->client->overview->products();
+                $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
+                $productIdsList = array_chunk(array_diff($productIds, $existingIds), static::CHUNK_SIZE);
+            } else {
+                $productIdsList = array_chunk($productIds, static::CHUNK_SIZE);
+            }
 
-        foreach ($productIdsList as $ids) {
-            Queue::addJobWithoutModelId($type, 'products', ['ids' => $ids]);
+            foreach ($productIdsList as $ids) {
+                Queue::addJobWithoutModelId($type, 'products', ['ids' => $ids]);
+            }
         }
     }
 
@@ -171,10 +173,12 @@ class Initializer
             return $item['id_product_attribute'];
         }, $variants);
 
-        $variantIdsList = array_chunk(array_diff($variantIds, $existingIds), static::CHUNK_SIZE);
+        if (count($variantIds) > 0) {
+            $variantIdsList = array_chunk(array_diff($variantIds, $existingIds), static::CHUNK_SIZE);
 
-        foreach ($variantIdsList as $ids) {
-            Queue::addJobWithoutModelId($type, 'variants', ['ids' => $ids]);
+            foreach ($variantIdsList as $ids) {
+                Queue::addJobWithoutModelId($type, 'variants', ['ids' => $ids]);
+            }
         }
     }
 
@@ -199,16 +203,18 @@ class Initializer
             return $item['id_customer'];
         }, $users);
 
-        if ($type === 'init') {
-            $res = $this->client->overview->users();
-            $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
-            $userIdsList = array_chunk(array_diff($userIds, $existingIds), static::CHUNK_SIZE);
-        } else {
-            $userIdsList = array_chunk($userIds, static::CHUNK_SIZE);
-        }
+        if (count($userIds) > 0) {
+            if ($type === 'init') {
+                $res = $this->client->overview->users();
+                $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
+                $userIdsList = array_chunk(array_diff($userIds, $existingIds), static::CHUNK_SIZE);
+            } else {
+                $userIdsList = array_chunk($userIds, static::CHUNK_SIZE);
+            }
 
-        foreach ($userIdsList as $ids) {
-            Queue::addJobWithoutModelId($type, 'users', ['ids' => $ids]);
+            foreach ($userIdsList as $ids) {
+                Queue::addJobWithoutModelId($type, 'users', ['ids' => $ids]);
+            }
         }
     }
 
@@ -233,16 +239,18 @@ class Initializer
             return $item['id_order'];
         }, $orders);
 
-        if ($type === 'init') {
-            $res = $this->client->overview->orders();
-            $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
-            $orderIdsList = array_chunk(array_diff($orderIds, $existingIds), static::CHUNK_SIZE);
-        } else {
-            $orderIdsList = array_chunk($orderIds, static::CHUNK_SIZE);
-        }
+        if (count($orderIds) > 0) {
+            if ($type === 'init') {
+                $res = $this->client->overview->orders();
+                $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
+                $orderIdsList = array_chunk(array_diff($orderIds, $existingIds), static::CHUNK_SIZE);
+            } else {
+                $orderIdsList = array_chunk($orderIds, static::CHUNK_SIZE);
+            }
 
-        foreach ($orderIdsList as $ids) {
-            Queue::addJobWithoutModelId($type, 'orders', ['ids' => $ids]);
+            foreach ($orderIdsList as $ids) {
+                Queue::addJobWithoutModelId($type, 'orders', ['ids' => $ids]);
+            }
         }
     }
 
@@ -268,16 +276,18 @@ class Initializer
             return $item['id_category'];
         }, $categories);
 
-        if ($type === 'init') {
-            $res = $this->client->overview->categories();
-            $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
-            $categoryIdsList = array_chunk(array_diff($categoryIds, $existingIds), static::CHUNK_SIZE);
-        } else {
-            $categoryIdsList = array_chunk($categoryIds, static::CHUNK_SIZE);
-        }
+        if (count($categoryIds) > 0) {
+            if ($type === 'init') {
+                $res = $this->client->overview->categories();
+                $existingIds = !is_null($res->getData()->ids) ? $res->getData()->ids : [];
+                $categoryIdsList = array_chunk(array_diff($categoryIds, $existingIds), static::CHUNK_SIZE);
+            } else {
+                $categoryIdsList = array_chunk($categoryIds, static::CHUNK_SIZE);
+            }
 
-        foreach ($categoryIdsList as $ids) {
-            Queue::addJobWithoutModelId($type, 'categories', ['ids' => $ids]);
+            foreach ($categoryIdsList as $ids) {
+                Queue::addJobWithoutModelId($type, 'categories', ['ids' => $ids]);
+            }
         }
     }
 
