@@ -1,4 +1,5 @@
 <?php
+
 /**
  * MIT License
  * Copyright (c) 2019 DataCue
@@ -66,8 +67,12 @@ class AdminDataCueSyncController extends ModuleAdminController
             ],
         ];
         $items = Queue::getAllByAction('init');
+        $initExists = false;
         foreach ($items as $item) {
             $count = count($item['job']->ids);
+            if (!$initExists && $count > 0) {
+                $initExists = true;
+            }
             $res[$item['model']]['total'] += $count;
             if ((int)$item['status'] === Queue::STATUS_SUCCESS) {
                 $res[$item['model']]['completed'] += $count;
@@ -75,7 +80,21 @@ class AdminDataCueSyncController extends ModuleAdminController
                 $res[$item['model']]['failed'] += $count;
             }
         }
-
+        $res['init'] = $initExists;
+        if (!$initExists) {
+            $items = Queue::getQueueStatus();
+            foreach ($items as $item) {
+                if ($item['model'] === 'events') {
+                    continue;
+                }
+                $res[$item['model']]['total'] += $item['total'];
+                if ((int)$item['status'] === Queue::STATUS_SUCCESS) {
+                    $res[$item['model']]['completed'] = $item['total'];
+                } elseif ((int)$item['status'] === Queue::STATUS_FAILURE) {
+                    $res[$item['model']]['failed'] = $item['total'];
+                }
+            }
+        }
         // return $this->json($res);
         die(Tools::jsonEncode($res));
     }

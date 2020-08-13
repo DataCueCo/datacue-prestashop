@@ -21,7 +21,7 @@
 *  @copyright 2019 DataCue
 *  @license   https://opensource.org/licenses/MIT MIT License
 *}
-
+<h2>Syncing your store data with DataCue</h3>
 <table id="datacue-sync-status-table">
   <thead>
   <tr>
@@ -34,3 +34,14 @@
   </thead>
   <tbody></tbody>
 </table>
+
+<div class="datacue-sync-initial-sync hidden">
+<h3>We are syncing your store data</h3>
+<p>Depending on your store size, this may take from a few mins to a few hours. Refer to the above table to monitor progress.</p>
+</div>
+
+<div class="datacue-sync-ongoing-sync hidden">
+<h3>Listening for store updates</h3>
+<p>All changes to your products, customers, orders and categories are synced with DataCue. Refer to the above table to monitor progress.</p>
+<p>Write to us at <a href="mailto:support@datacue.co">support@datacue.co</a> if you don't see any progress or a high number of failures in the table.</p>
+</div>

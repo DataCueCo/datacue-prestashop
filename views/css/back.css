@@ -22,7 +22,8 @@
  *  @license   https://opensource.org/licenses/MIT MIT License
  */
 
-.datacue-helper-section, .datacue-disconnect-section {
+.datacue-helper-section,
+.datacue-disconnect-section {
   margin-bottom: 10px;
   padding: 20px;
   background: #fff;
@@ -96,4 +97,11 @@
   font-size: 16px;
   padding: 16px;
   text-align: right;
+}
+
+.hidden {
+  display: none;
+}
+.active {
+  display: block;
 }

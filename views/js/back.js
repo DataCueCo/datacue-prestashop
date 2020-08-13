@@ -25,59 +25,77 @@
 function getSyncStatus() {
   $.ajax({
     url: syncStatusUrl,
-    type: 'GET',
-    dataType: 'json'
-  }).success(function(data) {
-    var html = '';
-    Object.keys(data).forEach(function(key) {
-      html += '<tr>';
-      html += '<td align="center">' + key + '</td>';
-      html += '<td align="center">' + data[key].total + '</td>';
-      html += '<td align="center">' + (data[key].total - data[key].completed - data[key].failed) + '</td>';
-      html += '<td align="center">' + data[key].completed + '</td>';
-      html += '<td align="center">' + data[key].failed + '</td>';
-      html += '</tr>';
+    type: "GET",
+    dataType: "json",
+  }).success(function (data) {
+    var html = "";
+    var isInit = false;
+    Object.keys(data).forEach(function (key) {
+      if (key === "init") {
+        isInit = data[key];
+        return;
+      }
+      html += "<tr>";
+      html += '<td align="center">' + key + "</td>";
+      html += '<td align="center">' + data[key].total + "</td>";
+      html +=
+        '<td align="center">' +
+        (data[key].total - data[key].completed - data[key].failed) +
+        "</td>";
+      html += '<td align="center">' + data[key].completed + "</td>";
+      html += '<td align="center">' + data[key].failed + "</td>";
+      html += "</tr>";
     });
     $("#datacue-sync-status-table tbody").html(html);
+    if (isInit) {
+      $(".datacue-sync-initial-sync").removeClass("hidden").addClass("active");
+      $(".datacue-sync-ongoing-sync").removeClass("active").addClass("hidden");
+    } else {
+      $(".datacue-sync-initial-sync").removeClass("active").addClass("hidden");
+      $(".datacue-sync-ongoing-sync").removeClass("hidden").addClass("active");
+    }
   });
 }
 
 function getLogOfDate(date) {
-  $("#datacue-log-frame").attr('src', window.logUrlPrefix + 'datacue-' + date + '.log');
+  $("#datacue-log-frame").attr(
+    "src",
+    window.logUrlPrefix + "datacue-" + date + ".log"
+  );
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
   getSyncStatus();
 
-  setInterval(function() {
+  setInterval(function () {
     getSyncStatus();
   }, 30000);
 
   var currentDate = $("#datacue-logs-date-select").val();
-  if (currentDate && currentDate != '') {
+  if (currentDate && currentDate != "") {
     getLogOfDate(currentDate);
   }
 
-  $("#datacue-logs-date-select").change(function() {
+  $("#datacue-logs-date-select").change(function () {
     getLogOfDate($("#datacue-logs-date-select").val());
   });
 
-  $("#btn-disconnect").on("click", function() {
+  $("#btn-disconnect").on("click", function () {
     $("#dialog-disconnect").removeClass("hide");
   });
 
-  $("#disconnect-ok").on("click", function() {
+  $("#disconnect-ok").on("click", function () {
     $.ajax({
       url: disconnectUrl,
-      type: 'POST',
-      dataType: 'json',
+      type: "POST",
+      dataType: "json",
     }).done(function () {
       $("#dialog-disconnect").addClass("hide");
       window.location.href = window.location.href;
     });
   });
 
-  $("#disconnect-cancel").on("click", function() {
+  $("#disconnect-cancel").on("click", function () {
     $("#dialog-disconnect").addClass("hide");
   });
 });

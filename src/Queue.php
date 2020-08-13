@@ -1,4 +1,5 @@
 <?php
+
 /**
  * MIT License
  * Copyright (c) 2019 DataCue
@@ -165,7 +166,15 @@ class Queue
         foreach ($items as &$item) {
             $item['job'] = json_decode($item['job']);
         }
-        
+        return $items;
+    }
+
+    public static function getQueueStatus()
+    {
+        $res = \Db::getInstance()->query("
+            SELECT model,status,count(1) as total FROM `" . _DB_PREFIX_ . "datacue_queue` WHERE `model` != 'init' group by 1,2");
+        $items = iterator_to_array($res);
+
         return $items;
     }
 
