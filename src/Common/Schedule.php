@@ -138,7 +138,11 @@ class Schedule
                 if (!empty($job)) {
                     try {
                         $res = $this->doInit($job['model'], $job['job'], $job['action']);
-                        $this->updateMultiJobsStatus($res, [$job]);
+                        if (is_null($res)) {
+                            Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_SUCCESS);
+                        } else {
+                            $this->updateMultiJobsStatus($res, [$job]);
+                        }
                     } catch (Exception $e) {
                         Queue::updateJobStatus($job['id_datacue_queue'], static::STATUS_FAILURE);
                     }
@@ -345,9 +349,14 @@ class Schedule
             if ($action === 'reinit' && count($variantIds) > 0) {
                 Queue::addJobWithoutModelId('reinit', 'variants', ['ids' => $variantIds]);
             }
-            $res = $this->client->products->batchCreate($items);
-            Log::info('batch create products response: ' . $res);
-            return $res;
+            if (count($items) > 0) {
+                $res = $this->client->products->batchCreate($items);
+                Log::info('batch create products response: ' . $res);
+                return $res;
+            } else {
+                Log::info('the total count of products is zero');
+                return null;
+            }
         } elseif ($model === 'variants') {
             $items = [];
             foreach ($job->ids as $id) {
