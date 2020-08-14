@@ -22,7 +22,7 @@
 *  @license   https://opensource.org/licenses/MIT MIT License
 *}
 <h3>Syncing your store data with DataCue</h3>
-<table id="datacue-sync-status-table">
+<table id="datacue-sync-status-table" style="margin-bottom: 2rem">
   <thead>
   <tr>
     <th width="100">Data Type</th>
