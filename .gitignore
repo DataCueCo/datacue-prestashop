@@ -3,3 +3,4 @@ vendor
 composer.lock
 datacue-*.log
 staging
+.vscode

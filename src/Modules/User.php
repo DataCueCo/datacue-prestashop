@@ -1,5 +1,4 @@
 <?php
-
 /**
  * MIT License
  * Copyright (c) 2019 DataCue

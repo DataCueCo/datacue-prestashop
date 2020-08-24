@@ -1,5 +1,4 @@
 <?php
-
 /**
  * MIT License
  * Copyright (c) 2019 DataCue
@@ -56,8 +55,10 @@ class Queue
         $job = \Db::getInstance()->escape(json_encode($job), true);
 
         return \Db::getInstance()->execute("
-			INSERT INTO `" . _DB_PREFIX_ . "datacue_queue` (`action`, `model`, `model_id`, `job`, `status`, `created_at`) 
-			VALUES ('$action', '$model', $modelId, '$job', 0, NOW()) ON DUPLICATE KEY UPDATE `job`='$job', `status`=0, `created_at`=NOW()");
+            INSERT INTO `" . _DB_PREFIX_ . "datacue_queue`
+            (`action`, `model`, `model_id`, `job`, `status`, `created_at`)
+            VALUES ('$action', '$model', $modelId, '$job', 0, NOW())
+            ON DUPLICATE KEY UPDATE `job`='$job', `status`=0, `created_at`=NOW()");
     }
 
     public static function addJobWithoutModelId($action, $model, $job)
@@ -67,8 +68,10 @@ class Queue
         $job = \Db::getInstance()->escape(json_encode($job), true);
 
         return \Db::getInstance()->execute("
-			INSERT INTO `" . _DB_PREFIX_ . "datacue_queue` (`action`, `model`, `job`, `status`, `created_at`) 
-			VALUES ('$action', '$model', '$job', 0, NOW()) ON DUPLICATE KEY UPDATE `job`='$job', `status`=0, `created_at`=NOW()");
+            INSERT INTO `" . _DB_PREFIX_ . "datacue_queue`
+            (`action`, `model`, `job`, `status`, `created_at`)
+            VALUES ('$action', '$model', '$job', 0, NOW())
+            ON DUPLICATE KEY UPDATE `job`='$job', `status`=0, `created_at`=NOW()");
     }
 
     public static function updateJob($id, $job)
@@ -77,7 +80,8 @@ class Queue
         $job = \Db::getInstance()->escape(json_encode($job), true);
 
         return \Db::getInstance()->execute("
-            UPDATE `" . _DB_PREFIX_ . "datacue_queue` SET `job` = '$job' WHERE `id_datacue_queue` = $id
+            UPDATE `" . _DB_PREFIX_ . "datacue_queue` SET `job` = '$job'
+            WHERE `id_datacue_queue` = $id
         ");
     }
 
@@ -108,7 +112,8 @@ class Queue
 
         $job = \Db::getInstance()->getRow("
             SELECT * FROM `" . _DB_PREFIX_ . "datacue_queue`
-            WHERE `action` = '$action' AND `model` = '$model' AND `model_id` = $modelId AND `status` = 0");
+            WHERE `action` = '$action' AND `model` = '$model' AND
+            `model_id` = $modelId AND `status` = 0");
         if ($job) {
             $job['job'] = json_decode($job['job']);
         }
@@ -130,7 +135,8 @@ class Queue
         $action = \Db::getInstance()->escape($action);
 
         $job = \Db::getInstance()->getRow("
-            SELECT * FROM `" . _DB_PREFIX_ . "datacue_queue` WHERE `action` = '$action' AND `status` = 0");
+            SELECT * FROM `" . _DB_PREFIX_ . "datacue_queue`
+            WHERE `action` = '$action' AND `status` = 0");
         if ($job) {
             $job['job'] = json_decode($job['job']);
         }
@@ -143,8 +149,8 @@ class Queue
         $action = \Db::getInstance()->escape($action);
 
         $res = \Db::getInstance()->query("
-            SELECT * FROM `" . _DB_PREFIX_ . "datacue_queue` 
-            WHERE `model` = '$model' AND `action` = '$action' AND `status` = 0 
+            SELECT * FROM `" . _DB_PREFIX_ . "datacue_queue`
+            WHERE `model` = '$model' AND `action` = '$action' AND `status` = 0
             LIMIT $limit");
         $items = iterator_to_array($res);
 
@@ -160,7 +166,8 @@ class Queue
         $action = \Db::getInstance()->escape($action);
 
         $res = \Db::getInstance()->query("
-            SELECT * FROM `" . _DB_PREFIX_ . "datacue_queue` WHERE `action` = '$action'");
+            SELECT * FROM `" . _DB_PREFIX_ . "datacue_queue`
+            WHERE `action` = '$action'");
         $items = iterator_to_array($res);
 
         foreach ($items as &$item) {
@@ -172,7 +179,9 @@ class Queue
     public static function getQueueStatus()
     {
         $res = \Db::getInstance()->query("
-            SELECT model,status,count(1) as total FROM `" . _DB_PREFIX_ . "datacue_queue` WHERE `model` != 'init' group by 1,2");
+            SELECT model,status,count(1) as total
+            FROM `" . _DB_PREFIX_ . "datacue_queue`
+            WHERE `model` != 'init' group by 1,2");
         $items = iterator_to_array($res);
 
         return $items;
@@ -183,8 +192,9 @@ class Queue
         $id = \Db::getInstance()->escape("$id");
         $status = \Db::getInstance()->escape("$status");
 
-        return \Db::getInstance()->execute(
-            "UPDATE `" . _DB_PREFIX_ . "datacue_queue` SET `status` = $status, `executed_at` = NOW() 
+        return \Db::getInstance()->execute("
+            UPDATE `" . _DB_PREFIX_ . "datacue_queue` SET `status` = $status,
+            `executed_at` = NOW()
             WHERE `id_datacue_queue` = $id"
         );
     }
@@ -192,10 +202,11 @@ class Queue
     public static function updateMultiJobsStatus(array $ids, $status)
     {
         $status = \Db::getInstance()->escape("$status");
-        $idsStr = join(',', $ids);
+        $idsStr = implode(',', $ids);
 
         return \Db::getInstance()->execute(
-            "UPDATE `" . _DB_PREFIX_ . "datacue_queue` SET `status` = $status, `executed_at` = NOW() 
+            "UPDATE `" . _DB_PREFIX_ . "datacue_queue`
+            SET `status` = $status,`executed_at` = NOW()
             WHERE `id_datacue_queue` in ($idsStr)"
         );
     }
