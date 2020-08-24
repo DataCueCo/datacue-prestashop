@@ -195,8 +195,7 @@ class Queue
         return \Db::getInstance()->execute("
             UPDATE `" . _DB_PREFIX_ . "datacue_queue` SET `status` = $status,
             `executed_at` = NOW()
-            WHERE `id_datacue_queue` = $id"
-        );
+            WHERE `id_datacue_queue` = $id");
     }
 
     public static function updateMultiJobsStatus(array $ids, $status)
