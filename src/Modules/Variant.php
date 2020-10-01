@@ -49,6 +49,15 @@ class Variant
                 return null;
             }
         }
+
+        // get product image id
+        $images = \Product::getCover($product->id);
+        if (!empty($images) && array_key_exists('id_image', $images) && !empty($images['id_image'])) {
+            $imageId = $images['id_image'];
+        } else {
+            $imageId = null;
+        }
+
         $item = [
             'name' => $product->name[1],
             'price' => static::getVariantPrice($product, $combination->id),
@@ -64,10 +73,7 @@ class Variant
             ),
             'available' => $product->active === '1' || $product->active === 1,
             'description' => $product->description[1],
-            'photo_url' => empty($product->getCoverWs()) ?
-                null :
-                Utils::baseURL() . _PS_PROD_IMG_ . \Image::getImgFolderStatic($product->getCoverWs())
-                . $product->getCoverWs() . '.jpg',
+            'photo_url' => !empty($imageId) ? \Context::getContext()->link->getImageLink($product->link_rewrite, $imageId, \ImageType::getFormatedName('home')) : null,
             'stock' => \StockAvailable::getQuantityAvailableByProduct($product->id, $combination->id),
             'category_ids' => $product->getCategories(),
             'brand' => $product->getWsManufacturerName() ? $product->getWsManufacturerName() : null,

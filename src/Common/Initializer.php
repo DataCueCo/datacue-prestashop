@@ -18,9 +18,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- *  @author    DataCue <contact@datacue.co>
- *  @copyright 2019 DataCue
- *  @license   https://opensource.org/licenses/MIT MIT License
+ * @author    DataCue <contact@datacue.co>
+ * @copyright 2019 DataCue
+ * @license   https://opensource.org/licenses/MIT MIT License
  */
 
 namespace DataCue\PrestaShop\Common;
@@ -165,7 +165,7 @@ class Initializer
             $variants = \Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
                 'SELECT `id_product_attribute` FROM `'
                 . _DB_PREFIX_ . 'product_attribute` WHERE `id_product` NOT IN (' . join(',', $existingIds) . ')'
-                .'ORDER BY `id_product_attribute` ASC'
+                . 'ORDER BY `id_product_attribute` ASC'
             );
         }
 
@@ -233,7 +233,7 @@ class Initializer
         $this->log('batchCreateOrders');
 
         $orders = \Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
-            'SELECT `id_order` FROM `' . _DB_PREFIX_ . 'orders` ORDER BY `id_order` ASC'
+            'SELECT `id_order` FROM `' . _DB_PREFIX_ . 'orders` WHERE `date_add` BETWEEN CURDATE() - INTERVAL 6 MONTH AND CURDATE() + INTERVAL 1 DAY ORDER BY `id_order` ASC'
         );
         $orderIds = array_map(function ($item) {
             return $item['id_order'];
