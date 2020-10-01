@@ -26,15 +26,6 @@
 namespace DataCue\PrestaShop\Common;
 
 use Configuration;
-use DataCue\Client;
-use DataCue\PrestaShop\Modules\Category;
-use DataCue\PrestaShop\Utils\Log;
-use DataCue\PrestaShop\Queue;
-use DataCue\PrestaShop\Modules\User;
-use DataCue\PrestaShop\Modules\Product;
-use DataCue\PrestaShop\Modules\Variant;
-use DataCue\PrestaShop\Modules\Order;
-use DataCue\PrestaShop\Utils;
 
 class ClearQueue
 {
