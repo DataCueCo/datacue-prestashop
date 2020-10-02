@@ -233,7 +233,7 @@ class Initializer
         $this->log('batchCreateOrders');
 
         $orders = \Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
-            'SELECT `id_order` FROM `' . _DB_PREFIX_ . 'orders` WHERE `date_add` BETWEEN CURDATE() - INTERVAL 6 MONTH AND CURDATE() + INTERVAL 1 DAY ORDER BY `id_order` ASC'
+            'SELECT `id_order` FROM `' . _DB_PREFIX_ . 'orders` WHERE `date_add` > (CURDATE() - INTERVAL 6 MONTH) ORDER BY `id_order` ASC'
         );
         $orderIds = array_map(function ($item) {
             return $item['id_order'];
